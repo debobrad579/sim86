@@ -129,6 +129,27 @@ impl From<[u8; 6]> for Instruction {
                 source: mod_rm.reg,
                 size: mod_rm.size,
             };
+        } else if bytes[0] >> 6 == 0b00 && (bytes[0] & 0b00000110) >> 1 == 0b10 {
+            let width = Width::from(bytes[0] & 0b00000001);
+            let literal = (bytes[0] & 0b00111000) >> 3;
+
+            let op_code = get_alu_op_code(literal);
+
+            let (data, size) = match width {
+                Width::Byte => (bytes[1] as u16, 2),
+                Width::Word => (u16::from_le_bytes([bytes[1], bytes[2]]), 3),
+            };
+
+            let immediate = Operand::Immediate(Immediate::Unsigned(data));
+            let register = Operand::Register(Register { width, value: 0 });
+
+            return Self {
+                op_code,
+                width,
+                destination: register,
+                source: immediate,
+                size,
+            };
         }
 
         unreachable!("operation not found: {:08b}", bytes[0])

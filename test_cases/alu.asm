@@ -17,14 +17,14 @@ add [bp + si + 4], bh
 add [bp + di + 6], di
 add byte [bx], 34
 add word [bp + si + 1000], 29
-; add ax, [bp]
-; add al, [bx + si]
-; add ax, bx
-; add al, ah
-; add ax, 1000
-; add al, -30
-; add al, 9
-;
+add ax, [bp]
+add al, [bx + si]
+add ax, bx
+add al, ah
+add ax, 1000
+add al, -30
+add al, 9
+
 sub bx, [bx+si]
 sub bx, [bp]
 sub si, 2
@@ -42,14 +42,14 @@ sub [bp + si + 4], bh
 sub [bp + di + 6], di
 sub byte [bx], 34
 sub word [bx + di], 29
-; sub ax, [bp]
-; sub al, [bx + si]
-; sub ax, bx
-; sub al, ah
-; sub ax, 1000
-; sub al, -30
-; sub al, 9
-;
+sub ax, [bp]
+sub al, [bx + si]
+sub ax, bx
+sub al, ah
+sub ax, 1000
+sub al, -30
+sub al, 9
+
 cmp bx, [bx+si]
 cmp bx, [bp]
 cmp si, 2
@@ -67,10 +67,10 @@ cmp [bp + si + 4], bh
 cmp [bp + di + 6], di
 cmp byte [bx], 34
 cmp word [4834], 29
-; cmp ax, [bp]
-; cmp al, [bx + si]
-; cmp ax, bx
-; cmp al, ah
-; cmp ax, 1000
-; cmp al, -30
-; cmp al, 9
+cmp ax, [bp]
+cmp al, [bx + si]
+cmp ax, bx
+cmp al, ah
+cmp ax, 1000
+cmp al, -30
+cmp al, 9
