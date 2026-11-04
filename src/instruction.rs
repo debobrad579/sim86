@@ -49,7 +49,7 @@ impl Display for Instruction {
 pub enum Operand {
     Register(Register),
     Memory(Memory),
-    Immediate(u16),
+    Immediate(Immediate),
 }
 
 impl Display for Operand {
@@ -57,7 +57,7 @@ impl Display for Operand {
         match self {
             Operand::Register(register) => write!(f, "{}", register),
             Operand::Memory(memory) => write!(f, "{}", memory),
-            Operand::Immediate(value) => write!(f, "{}", value),
+            Operand::Immediate(immediate) => write!(f, "{}", immediate),
         }
     }
 }
@@ -121,6 +121,20 @@ impl Display for EAC {
         match &self.index {
             Some(index) => write!(f, "{}+{}{:+}", self.base, index, self.displacement),
             None => write!(f, "{}{:+}", self.base, self.displacement),
+        }
+    }
+}
+
+pub enum Immediate {
+    SignExtended(i16),
+    Unsigned(u16),
+}
+
+impl Display for Immediate {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Immediate::SignExtended(value) => write!(f, "{}", value),
+            Immediate::Unsigned(value) => write!(f, "{}", value),
         }
     }
 }

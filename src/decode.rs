@@ -1,7 +1,7 @@
 use crate::{
-    instruction::{Instruction, Memory, Operand, Register, Width},
+    instruction::{Immediate, Instruction, Memory, Operand, Register, Width},
     memory::decode_modrm,
-    op_code::OpCode,
+    op_code::{OpCode, get_alu_op_code},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -25,7 +25,7 @@ impl From<[u8; 6]> for Instruction {
         if bytes[0] >> 2 == 0b100010 {
             let direction = Direction::from((bytes[0] & 0b00000010) >> 1);
 
-            let mod_rm = decode_modrm(bytes, false);
+            let mod_rm = decode_modrm(bytes, false, false);
 
             return match direction {
                 Direction::RegToRM => Self {
@@ -44,7 +44,7 @@ impl From<[u8; 6]> for Instruction {
                 },
             };
         } else if bytes[0] >> 1 == 0b1100011 {
-            let mod_rm = decode_modrm(bytes, true);
+            let mod_rm = decode_modrm(bytes, true, false);
 
             return Self {
                 op_code: OpCode::MOV,
@@ -61,11 +61,11 @@ impl From<[u8; 6]> for Instruction {
                 op_code: OpCode::MOV,
                 width,
                 destination: Operand::Register(Register { width, value: reg }),
-                source: Operand::Immediate(if width == Width::Byte {
+                source: Operand::Immediate(Immediate::Unsigned(if width == Width::Byte {
                     bytes[1] as u16
                 } else {
                     u16::from_le_bytes([bytes[1], bytes[2]])
-                }),
+                })),
                 size: if width == Width::Word { 3 } else { 2 },
             };
         } else if bytes[0] >> 2 == 0b101000 {
@@ -91,6 +91,43 @@ impl From<[u8; 6]> for Instruction {
                     source: register,
                     size: 3,
                 },
+            };
+        } else if bytes[0] & 0b11000100 == 0 {
+            let direction = Direction::from((bytes[0] & 0b00000010) >> 1);
+            let literal = (bytes[0] & 0b00111000) >> 3;
+
+            let op_code = get_alu_op_code(literal);
+            let mod_rm = decode_modrm(bytes, false, false);
+
+            return match direction {
+                Direction::RegToRM => Self {
+                    op_code,
+                    width: mod_rm.width,
+                    destination: mod_rm.rm,
+                    source: mod_rm.reg,
+                    size: mod_rm.size,
+                },
+                Direction::RMToReg => Self {
+                    op_code,
+                    width: mod_rm.width,
+                    destination: mod_rm.reg,
+                    source: mod_rm.rm,
+                    size: mod_rm.size,
+                },
+            };
+        } else if bytes[0] >> 6 == 0b10 && bytes[0] & 0b00000100 == 0 {
+            let sign_extend = bytes[0] & 0b00000010 != 0;
+            let literal = (bytes[1] & 0b00111000) >> 3;
+
+            let op_code = get_alu_op_code(literal);
+            let mod_rm = decode_modrm(bytes, true, sign_extend);
+
+            return Self {
+                op_code,
+                width: mod_rm.width,
+                destination: mod_rm.rm,
+                source: mod_rm.reg,
+                size: mod_rm.size,
             };
         }
 

@@ -1,4 +1,4 @@
-use crate::instruction::{EAC, Memory, Operand, Register, Width};
+use crate::instruction::{EAC, Immediate, Memory, Operand, Register, Width};
 
 pub struct ModRM {
     pub reg: Operand,
@@ -7,56 +7,69 @@ pub struct ModRM {
     pub size: usize,
 }
 
-pub fn decode_modrm(bytes: [u8; 6], immediate: bool) -> ModRM {
+pub fn decode_modrm(bytes: [u8; 6], immediate: bool, sign_extend: bool) -> ModRM {
     let width = Width::from(bytes[0] & 0b00000001);
     let mode = bytes[1] >> 6;
     let reg = (bytes[1] & 0b00111000) >> 3;
     let rm = bytes[1] & 0b00000111;
 
-    let (displacement, displacement_size): (i16, usize) = match mode {
+    let (rm_value, displacement_size): (Operand, usize) = match mode {
         0b00 => {
             if rm == 0b110 {
-                (u16::from_le_bytes([bytes[2], bytes[3]]) as i16, 2)
+                (
+                    Operand::Memory(Memory::DirectAccess(u16::from_le_bytes([
+                        bytes[2], bytes[3],
+                    ]))),
+                    2,
+                )
             } else {
-                (0, 0)
+                (Operand::Memory(get_effective_address_expression(rm, 0)), 0)
             }
         }
-        0b01 => (bytes[2] as i8 as i16, 1),
-        0b10 => (u16::from_le_bytes([bytes[2], bytes[3]]) as i16, 2),
-        0b11 => {
-            return ModRM {
-                reg: Operand::Register(Register { width, value: reg }),
-                rm: Operand::Register(Register { width, value: rm }),
-                width,
-                size: 2,
-            };
-        }
+        0b01 => (
+            Operand::Memory(get_effective_address_expression(rm, bytes[2] as i8 as i16)),
+            1,
+        ),
+        0b10 => (
+            Operand::Memory(get_effective_address_expression(
+                rm,
+                u16::from_le_bytes([bytes[2], bytes[3]]) as i16,
+            )),
+            2,
+        ),
+        0b11 => (Operand::Register(Register { width, value: rm }), 0),
         _ => unreachable!(),
     };
 
-    let rm_value = if mode == 0b00 && rm == 0b110 {
-        Operand::Memory(Memory::DirectAccess(displacement as u16))
-    } else {
-        Operand::Memory(get_effective_address_expression(rm, displacement))
-    };
-
     if immediate {
-        return match width {
-            Width::Byte => ModRM {
-                rm: rm_value,
-                reg: Operand::Immediate(bytes[2 + displacement_size] as u16),
-                width,
-                size: displacement_size + 3,
-            },
-            Width::Word => ModRM {
-                rm: rm_value,
-                reg: Operand::Immediate(u16::from_le_bytes([
-                    bytes[2 + displacement_size],
-                    bytes[3 + displacement_size],
-                ])),
-                width,
-                size: displacement_size + 4,
-            },
+        let immediate_size = if sign_extend {
+            1
+        } else {
+            match width {
+                Width::Byte => 1,
+                Width::Word => 2,
+            }
+        };
+
+        let offset = 2 + displacement_size;
+
+        let raw_value = match immediate_size {
+            1 => bytes[offset] as u16,
+            2 => u16::from_le_bytes([bytes[offset], bytes[offset + 1]]),
+            _ => unreachable!(),
+        };
+
+        let immediate = if sign_extend {
+            Operand::Immediate(Immediate::SignExtended(raw_value as u8 as i8 as i16))
+        } else {
+            Operand::Immediate(Immediate::Unsigned(raw_value))
+        };
+
+        return ModRM {
+            rm: rm_value,
+            reg: immediate,
+            width,
+            size: offset + immediate_size,
         };
     }
 
