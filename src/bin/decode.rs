@@ -2,7 +2,7 @@ use std::env;
 
 use sim86::instruction::Instruction;
 
-fn main() {
+fn main() -> std::io::Result<()> {
     let args: Vec<String> = env::args().collect();
 
     if args.len() != 2 {
@@ -12,7 +12,7 @@ fn main() {
 
     let file_path = &args[1];
 
-    let data: Box<[u8]> = std::fs::read(file_path).unwrap().into();
+    let data: Box<[u8]> = std::fs::read(file_path)?.into();
 
     let len = data.len();
     let mut count = len;
@@ -30,4 +30,6 @@ fn main() {
 
         count -= instruction.size;
     }
+
+    Ok(())
 }
