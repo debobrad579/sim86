@@ -6,7 +6,7 @@ use crate::{
         memory::decode_modrm,
         op_code::{get_alu_op_code, get_conditional_jump_op_code},
     },
-    types::{Immediate, Instruction, Memory, OpCode, Operand, Register, Width},
+    types::{Immediate, Instruction, InstructionData, Memory, Operand, Register, Width},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -34,17 +34,19 @@ impl From<[u8; 6]> for Instruction {
 
             return match direction {
                 Direction::RegToRM => Self {
-                    op_code: OpCode::MOV,
-                    width: mod_rm.width,
-                    operand1: mod_rm.rm,
-                    operand2: mod_rm.reg,
+                    data: InstructionData::MOV {
+                        width: mod_rm.width,
+                        destination: mod_rm.rm,
+                        source: mod_rm.reg,
+                    },
                     size: mod_rm.size,
                 },
                 Direction::RMToReg => Self {
-                    op_code: OpCode::MOV,
-                    width: mod_rm.width,
-                    operand1: mod_rm.reg,
-                    operand2: mod_rm.rm,
+                    data: InstructionData::MOV {
+                        width: mod_rm.width,
+                        destination: mod_rm.reg,
+                        source: mod_rm.rm,
+                    },
                     size: mod_rm.size,
                 },
             };
@@ -52,10 +54,11 @@ impl From<[u8; 6]> for Instruction {
             let mod_rm = decode_modrm(bytes, true, false);
 
             return Self {
-                op_code: OpCode::MOV,
-                width: mod_rm.width,
-                operand1: mod_rm.rm,
-                operand2: mod_rm.reg,
+                data: InstructionData::MOV {
+                    width: mod_rm.width,
+                    destination: mod_rm.rm,
+                    source: mod_rm.reg,
+                },
                 size: mod_rm.size,
             };
         } else if bytes[0] >> 4 == 0b1011 {
@@ -63,14 +66,15 @@ impl From<[u8; 6]> for Instruction {
             let reg = bytes[0] & 0b00000111;
 
             return Self {
-                op_code: OpCode::MOV,
-                width,
-                operand1: Operand::Register(Register { width, value: reg }),
-                operand2: Operand::Immediate(Immediate::Unsigned(if width == Width::Byte {
-                    bytes[1] as u16
-                } else {
-                    u16::from_le_bytes([bytes[1], bytes[2]])
-                })),
+                data: InstructionData::MOV {
+                    width,
+                    destination: Operand::Register(Register { width, value: reg }),
+                    source: Operand::Immediate(Immediate::Unsigned(if width == Width::Byte {
+                        bytes[1] as u16
+                    } else {
+                        u16::from_le_bytes([bytes[1], bytes[2]])
+                    })),
+                },
                 size: if width == Width::Word { 3 } else { 2 },
             };
         } else if bytes[0] >> 2 == 0b101000 {
@@ -83,17 +87,19 @@ impl From<[u8; 6]> for Instruction {
 
             return match direction {
                 Direction::RegToRM => Self {
-                    op_code: OpCode::MOV,
-                    width,
-                    operand1: register,
-                    operand2: memory,
+                    data: InstructionData::MOV {
+                        width,
+                        destination: register,
+                        source: memory,
+                    },
                     size: 3,
                 },
                 Direction::RMToReg => Self {
-                    op_code: OpCode::MOV,
-                    width,
-                    operand1: memory,
-                    operand2: register,
+                    data: InstructionData::MOV {
+                        width,
+                        destination: memory,
+                        source: register,
+                    },
                     size: 3,
                 },
             };
@@ -106,17 +112,21 @@ impl From<[u8; 6]> for Instruction {
 
             return match direction {
                 Direction::RegToRM => Self {
-                    op_code,
-                    width: mod_rm.width,
-                    operand1: mod_rm.rm,
-                    operand2: mod_rm.reg,
+                    data: InstructionData::ALU {
+                        op_code,
+                        width: mod_rm.width,
+                        destination: mod_rm.rm,
+                        source: mod_rm.reg,
+                    },
                     size: mod_rm.size,
                 },
                 Direction::RMToReg => Self {
-                    op_code,
-                    width: mod_rm.width,
-                    operand1: mod_rm.reg,
-                    operand2: mod_rm.rm,
+                    data: InstructionData::ALU {
+                        op_code,
+                        width: mod_rm.width,
+                        destination: mod_rm.reg,
+                        source: mod_rm.rm,
+                    },
                     size: mod_rm.size,
                 },
             };
@@ -128,10 +138,12 @@ impl From<[u8; 6]> for Instruction {
             let mod_rm = decode_modrm(bytes, true, sign_extend);
 
             return Self {
-                op_code,
-                width: mod_rm.width,
-                operand1: mod_rm.rm,
-                operand2: mod_rm.reg,
+                data: InstructionData::ALU {
+                    op_code,
+                    width: mod_rm.width,
+                    destination: mod_rm.rm,
+                    source: mod_rm.reg,
+                },
                 size: mod_rm.size,
             };
         } else if bytes[0] >> 6 == 0b00 && (bytes[0] & 0b00000110) >> 1 == 0b10 {
@@ -149,18 +161,20 @@ impl From<[u8; 6]> for Instruction {
             let register = Operand::Register(Register { width, value: 0 });
 
             return Self {
-                op_code,
-                width,
-                operand1: register,
-                operand2: immediate,
+                data: InstructionData::ALU {
+                    op_code,
+                    width,
+                    destination: register,
+                    source: immediate,
+                },
                 size,
             };
         } else if let Some(op_code) = get_conditional_jump_op_code(bytes[0]) {
             return Self {
-                op_code,
-                width: Width::Byte,
-                operand1: Operand::JumpTarget(bytes[1] as i8 + 2),
-                operand2: Operand::None,
+                data: InstructionData::Jump {
+                    op_code,
+                    target: bytes[1] as i8 + 2,
+                },
                 size: 2,
             };
         }

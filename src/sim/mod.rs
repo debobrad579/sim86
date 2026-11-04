@@ -1,6 +1,7 @@
 use std::fmt::Debug;
 
 pub mod exec;
+pub mod get_set;
 
 #[derive(Default)]
 pub struct Sim86 {

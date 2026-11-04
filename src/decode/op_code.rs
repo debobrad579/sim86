@@ -1,41 +1,41 @@
-use crate::types::OpCode;
+use crate::types::{ALUOpCode, JumpOpCode};
 
-pub fn get_alu_op_code(literal: u8) -> OpCode {
+pub fn get_alu_op_code(literal: u8) -> ALUOpCode {
     match literal {
-        0b000 => OpCode::ADD,
-        0b001 => OpCode::OR,
-        0b010 => OpCode::ADC,
-        0b011 => OpCode::SBB,
-        0b100 => OpCode::AND,
-        0b101 => OpCode::SUB,
-        0b110 => OpCode::XOR,
-        0b111 => OpCode::CMP,
+        0b000 => ALUOpCode::ADD,
+        0b001 => ALUOpCode::OR,
+        0b010 => ALUOpCode::ADC,
+        0b011 => ALUOpCode::SBB,
+        0b100 => ALUOpCode::AND,
+        0b101 => ALUOpCode::SUB,
+        0b110 => ALUOpCode::XOR,
+        0b111 => ALUOpCode::CMP,
         _ => unreachable!(),
     }
 }
 
-pub fn get_conditional_jump_op_code(literal: u8) -> Option<OpCode> {
+pub fn get_conditional_jump_op_code(literal: u8) -> Option<JumpOpCode> {
     match literal {
-        0b01110000 => Some(OpCode::JO),
-        0b01110001 => Some(OpCode::JNO),
-        0b01110010 => Some(OpCode::JB),
-        0b01110011 => Some(OpCode::JNB),
-        0b01110100 => Some(OpCode::JE),
-        0b01110101 => Some(OpCode::JNE),
-        0b01110110 => Some(OpCode::JBE),
-        0b01110111 => Some(OpCode::JNBE),
-        0b01111000 => Some(OpCode::JS),
-        0b01111001 => Some(OpCode::JNS),
-        0b01111010 => Some(OpCode::JP),
-        0b01111011 => Some(OpCode::JNP),
-        0b01111100 => Some(OpCode::JL),
-        0b01111101 => Some(OpCode::JNL),
-        0b01111110 => Some(OpCode::JLE),
-        0b01111111 => Some(OpCode::JNLE),
-        0b11100000 => Some(OpCode::LOOPNZ),
-        0b11100001 => Some(OpCode::LOOPZ),
-        0b11100010 => Some(OpCode::LOOP),
-        0b11100011 => Some(OpCode::JCXZ),
+        0b01110000 => Some(JumpOpCode::JO),
+        0b01110001 => Some(JumpOpCode::JNO),
+        0b01110010 => Some(JumpOpCode::JB),
+        0b01110011 => Some(JumpOpCode::JNB),
+        0b01110100 => Some(JumpOpCode::JE),
+        0b01110101 => Some(JumpOpCode::JNE),
+        0b01110110 => Some(JumpOpCode::JBE),
+        0b01110111 => Some(JumpOpCode::JNBE),
+        0b01111000 => Some(JumpOpCode::JS),
+        0b01111001 => Some(JumpOpCode::JNS),
+        0b01111010 => Some(JumpOpCode::JP),
+        0b01111011 => Some(JumpOpCode::JNP),
+        0b01111100 => Some(JumpOpCode::JL),
+        0b01111101 => Some(JumpOpCode::JNL),
+        0b01111110 => Some(JumpOpCode::JLE),
+        0b01111111 => Some(JumpOpCode::JNLE),
+        0b11100000 => Some(JumpOpCode::LOOPNZ),
+        0b11100001 => Some(JumpOpCode::LOOPZ),
+        0b11100010 => Some(JumpOpCode::LOOP),
+        0b11100011 => Some(JumpOpCode::JCXZ),
         _ => None,
     }
 }

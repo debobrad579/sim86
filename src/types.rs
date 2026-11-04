@@ -17,36 +17,72 @@ impl From<u8> for Width {
 }
 
 pub struct Instruction {
-    pub op_code: OpCode,
-    pub width: Width,
-    pub operand1: Operand,
-    pub operand2: Operand,
+    pub data: InstructionData,
     pub size: usize,
+}
+
+pub enum InstructionData {
+    MOV {
+        width: Width,
+        destination: Operand,
+        source: Operand,
+    },
+    ALU {
+        op_code: ALUOpCode,
+        width: Width,
+        destination: Operand,
+        source: Operand,
+    },
+    Jump {
+        op_code: JumpOpCode,
+        target: i8,
+    },
 }
 
 impl Display for Instruction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut size = " ";
-        if !matches!(self.operand1, Operand::Register(_))
-            && !matches!(self.operand2, Operand::Register(_))
-        {
-            match self.width {
-                Width::Byte => size = " BYTE ",
-                Width::Word => size = " WORD ",
-            }
-        }
+        match &self.data {
+            InstructionData::MOV {
+                width,
+                destination,
+                source,
+            } => {
+                let mut size = " ";
+                if !matches!(destination, Operand::Register(_))
+                    && !matches!(source, Operand::Register(_))
+                {
+                    match width {
+                        Width::Byte => size = " BYTE ",
+                        Width::Word => size = " WORD ",
+                    }
+                }
 
-        write!(
-            f,
-            "{}{}{},{}",
-            self.op_code, size, self.operand1, self.operand2
-        )
+                write!(f, "MOV{}{},{}", size, destination, source)
+            }
+            InstructionData::ALU {
+                op_code,
+                width,
+                destination,
+                source,
+            } => {
+                let mut size = " ";
+                if !matches!(destination, Operand::Register(_))
+                    && !matches!(source, Operand::Register(_))
+                {
+                    match width {
+                        Width::Byte => size = " BYTE ",
+                        Width::Word => size = " WORD ",
+                    }
+                }
+
+                write!(f, "{}{}{},{}", op_code, size, destination, source)
+            }
+            InstructionData::Jump { op_code, target } => write!(f, "{} ${:+}", op_code, target),
+        }
     }
 }
 
 pub enum Operand {
-    None,
-    JumpTarget(i8),
     Register(Register),
     Memory(Memory),
     Immediate(Immediate),
@@ -58,8 +94,6 @@ impl Display for Operand {
             Operand::Register(register) => write!(f, "{}", register),
             Operand::Memory(memory) => write!(f, "{}", memory),
             Operand::Immediate(immediate) => write!(f, "{}", immediate),
-            Operand::JumpTarget(target) => write!(f, "${:+}", target),
-            Operand::None => write!(f, ""),
         }
     }
 }
@@ -142,8 +176,7 @@ impl Display for Immediate {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum OpCode {
-    MOV,
+pub enum ALUOpCode {
     ADD,
     SUB,
     ADC,
@@ -152,6 +185,16 @@ pub enum OpCode {
     AND,
     OR,
     XOR,
+}
+
+impl Display for ALUOpCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum JumpOpCode {
     JO,
     JNO,
     JB,
@@ -174,7 +217,7 @@ pub enum OpCode {
     JCXZ,
 }
 
-impl Display for OpCode {
+impl Display for JumpOpCode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self)
     }
