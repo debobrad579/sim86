@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use crate::types::OpCode;
 
 pub fn get_alu_op_code(literal: u8) -> OpCode {
     match literal {
@@ -37,44 +37,5 @@ pub fn get_conditional_jump_op_code(literal: u8) -> Option<OpCode> {
         0b11100010 => Some(OpCode::LOOP),
         0b11100011 => Some(OpCode::JCXZ),
         _ => None,
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum OpCode {
-    MOV,
-    ADD,
-    SUB,
-    ADC,
-    SBB,
-    CMP,
-    AND,
-    OR,
-    XOR,
-    JO,
-    JNO,
-    JB,
-    JNB,
-    JE,
-    JNE,
-    JBE,
-    JNBE,
-    JS,
-    JNS,
-    JP,
-    JNP,
-    JL,
-    JNL,
-    JLE,
-    JNLE,
-    LOOPNZ,
-    LOOPZ,
-    LOOP,
-    JCXZ,
-}
-
-impl Display for OpCode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
     }
 }

@@ -1,7 +1,12 @@
+pub mod memory;
+pub mod op_code;
+
 use crate::{
-    instruction::{Immediate, Instruction, Memory, Operand, Register, Width},
-    memory::decode_modrm,
-    op_code::{OpCode, get_alu_op_code, get_conditional_jump_op_code},
+    decode::{
+        memory::decode_modrm,
+        op_code::{get_alu_op_code, get_conditional_jump_op_code},
+    },
+    types::{Immediate, Instruction, Memory, OpCode, Operand, Register, Width},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

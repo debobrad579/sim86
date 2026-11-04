@@ -1,7 +1,5 @@
 use std::fmt::Display;
 
-use crate::op_code::OpCode;
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Width {
     Byte,
@@ -140,5 +138,44 @@ impl Display for Immediate {
             Immediate::SignExtended(value) => write!(f, "{}", value),
             Immediate::Unsigned(value) => write!(f, "{}", value),
         }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum OpCode {
+    MOV,
+    ADD,
+    SUB,
+    ADC,
+    SBB,
+    CMP,
+    AND,
+    OR,
+    XOR,
+    JO,
+    JNO,
+    JB,
+    JNB,
+    JE,
+    JNE,
+    JBE,
+    JNBE,
+    JS,
+    JNS,
+    JP,
+    JNP,
+    JL,
+    JNL,
+    JLE,
+    JNLE,
+    LOOPNZ,
+    LOOPZ,
+    LOOP,
+    JCXZ,
+}
+
+impl Display for OpCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
     }
 }

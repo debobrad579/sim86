@@ -1,4 +1,4 @@
-use crate::instruction::{EAC, Immediate, Memory, Operand, Register, Width};
+use crate::types::{EAC, Immediate, Memory, Operand, Register, Width};
 
 pub struct ModRM {
     pub reg: Operand,

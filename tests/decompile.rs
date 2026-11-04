@@ -2,7 +2,7 @@ use std::fs;
 use std::path::Path;
 use std::process::Command;
 
-use sim86::instruction::Instruction;
+use sim86::types::Instruction;
 
 fn decode(data: &[u8]) -> String {
     let mut out = String::from("bits 16\n");
@@ -29,9 +29,12 @@ fn decode(data: &[u8]) -> String {
 
 #[test]
 fn decompile_to_assembly() {
-    let test_dir = Path::new("test_cases");
+    let decode_dir = Path::new("tests/decode");
+    let sim_dir = Path::new("tests/sim");
 
-    let test_files = fs::read_dir(test_dir).expect("Failed to read test_cases directory");
+    let test_files = fs::read_dir(decode_dir)
+        .expect("Failed to read test_cases directory")
+        .chain(fs::read_dir(sim_dir).expect("Failed to read test_cases directory 2"));
 
     for entry in test_files {
         let entry = entry.expect("Failed to read directory entry");
