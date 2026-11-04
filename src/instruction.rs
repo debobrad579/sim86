@@ -21,16 +21,16 @@ impl From<u8> for Width {
 pub struct Instruction {
     pub op_code: OpCode,
     pub width: Width,
-    pub destination: Operand,
-    pub source: Operand,
+    pub operand1: Operand,
+    pub operand2: Operand,
     pub size: usize,
 }
 
 impl Display for Instruction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut size = " ";
-        if !matches!(self.destination, Operand::Register(_))
-            && !matches!(self.source, Operand::Register(_))
+        if !matches!(self.operand1, Operand::Register(_))
+            && !matches!(self.operand2, Operand::Register(_))
         {
             match self.width {
                 Width::Byte => size = " BYTE ",
@@ -41,12 +41,14 @@ impl Display for Instruction {
         write!(
             f,
             "{}{}{},{}",
-            self.op_code, size, self.destination, self.source
+            self.op_code, size, self.operand1, self.operand2
         )
     }
 }
 
 pub enum Operand {
+    None,
+    JumpTarget(i8),
     Register(Register),
     Memory(Memory),
     Immediate(Immediate),
@@ -58,6 +60,8 @@ impl Display for Operand {
             Operand::Register(register) => write!(f, "{}", register),
             Operand::Memory(memory) => write!(f, "{}", memory),
             Operand::Immediate(immediate) => write!(f, "{}", immediate),
+            Operand::JumpTarget(target) => write!(f, "${:+}", target),
+            Operand::None => write!(f, ""),
         }
     }
 }
