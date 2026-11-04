@@ -28,7 +28,21 @@ pub struct Instruction {
 
 impl Display for Instruction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} {},{}", self.op_code, self.destination, self.source)
+        let mut size = " ";
+        if !matches!(self.destination, Operand::Register(_))
+            && !matches!(self.source, Operand::Register(_))
+        {
+            match self.width {
+                Width::Byte => size = " BYTE ",
+                Width::Word => size = " WORD ",
+            }
+        }
+
+        write!(
+            f,
+            "{}{}{},{}",
+            self.op_code, size, self.destination, self.source
+        )
     }
 }
 
@@ -82,17 +96,31 @@ impl Display for Register {
     }
 }
 
-pub struct Memory {
+pub enum Memory {
+    EAC(EAC),
+    DirectAccess(u16),
+}
+
+impl Display for Memory {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Memory::EAC(eac) => write!(f, "[{}]", eac),
+            Memory::DirectAccess(address) => write!(f, "[{}]", address),
+        }
+    }
+}
+
+pub struct EAC {
     pub base: Register,
     pub index: Option<Register>,
     pub displacement: i16,
 }
 
-impl Display for Memory {
+impl Display for EAC {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match &self.index {
-            Some(index) => write!(f, "[{}+{}{:+}]", self.base, index, self.displacement),
-            None => write!(f, "[{}{:+}]", self.base, self.displacement),
+            Some(index) => write!(f, "{}+{}{:+}", self.base, index, self.displacement),
+            None => write!(f, "{}{:+}", self.base, self.displacement),
         }
     }
 }
