@@ -89,7 +89,7 @@ fn decompile_to_assembly() {
 
         assert_eq!(
             original_data, decoded_data,
-            "Decompiled assembly does not match for {test_name}"
+            "Decompiled assembly does not match for {test_name}."
         );
     }
 }

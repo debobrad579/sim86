@@ -34,26 +34,15 @@ impl Display for Instruction {
 
 pub enum Operand {
     Register(Register),
-    Memory {
-        base: Register,
-        index: Option<Register>,
-        displacement: i16,
-    },
-    Immediate(i16),
+    Memory(Memory),
+    Immediate(u16),
 }
 
 impl Display for Operand {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Operand::Register(register) => write!(f, "{}", register),
-            Operand::Memory {
-                base,
-                index,
-                displacement,
-            } => match index {
-                Some(index) => write!(f, "[{}+{}{:+}]", base, index, displacement),
-                None => write!(f, "[{}{:+}]", base, displacement),
-            },
+            Operand::Memory(memory) => write!(f, "{}", memory),
             Operand::Immediate(value) => write!(f, "{}", value),
         }
     }
@@ -89,6 +78,21 @@ impl Display for Register {
                 0b111 => write!(f, "DI"),
                 _ => unreachable!(),
             },
+        }
+    }
+}
+
+pub struct Memory {
+    pub base: Register,
+    pub index: Option<Register>,
+    pub displacement: i16,
+}
+
+impl Display for Memory {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match &self.index {
+            Some(index) => write!(f, "[{}+{}{:+}]", self.base, index, self.displacement),
+            None => write!(f, "[{}{:+}]", self.base, self.displacement),
         }
     }
 }
