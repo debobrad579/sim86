@@ -14,7 +14,13 @@ pub fn decode_modrm(bytes: [u8; 6], immediate: bool) -> ModRM {
     let rm = bytes[1] & 0b00000111;
 
     let (displacement, displacement_size): (i16, usize) = match mode {
-        0b00 => (0, 0),
+        0b00 => {
+            if rm == 0b110 {
+                (u16::from_le_bytes([bytes[2], bytes[3]]) as i16, 2)
+            } else {
+                (0, 0)
+            }
+        }
         0b01 => (bytes[2] as i8 as i16, 1),
         0b10 => (u16::from_le_bytes([bytes[2], bytes[3]]) as i16, 2),
         0b11 => {
@@ -28,7 +34,11 @@ pub fn decode_modrm(bytes: [u8; 6], immediate: bool) -> ModRM {
         _ => unreachable!(),
     };
 
-    let rm_value = Operand::Memory(get_effective_address_expression(rm, displacement));
+    let rm_value = if mode == 0b00 && rm == 0b110 {
+        Operand::Memory(Memory::DirectAccess(displacement as u16))
+    } else {
+        Operand::Memory(get_effective_address_expression(rm, displacement))
+    };
 
     if immediate {
         return match width {
