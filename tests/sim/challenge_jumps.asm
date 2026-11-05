@@ -19,4 +19,4 @@ label_2:
 sub cx, 2
 
 label_3:
-; loopnz label_0
+loopnz label_0

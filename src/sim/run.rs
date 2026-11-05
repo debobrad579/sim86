@@ -27,7 +27,7 @@ impl Sim86 {
         }
     }
 
-    pub(super) fn update_instruction_pointer(&mut self, amount: i8) {
+    pub(super) fn update_ip(&mut self, amount: i8) {
         if amount >= 0 {
             self.ip += amount as usize
         } else {
