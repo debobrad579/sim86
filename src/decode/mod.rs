@@ -6,7 +6,10 @@ use crate::{
         memory::{ModRMType, decode_modrm},
         op_code::{get_alu_op_code, get_conditional_jump_op_code},
     },
-    types::{Immediate, Instruction, InstructionData, Memory, Operand, Register, Width},
+    types::{
+        EAC, Immediate, Instruction, InstructionData, Memory, Operand, Register, SegmentRegister,
+        Width,
+    },
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -25,12 +28,25 @@ impl From<u8> for Direction {
     }
 }
 
-impl From<[u8; 6]> for Instruction {
-    fn from(bytes: [u8; 6]) -> Self {
-        if bytes[0] >> 2 == 0b100010 {
-            let direction = Direction::from((bytes[0] & 0b00000010) >> 1);
+impl From<&[u8]> for Instruction {
+    fn from(bytes: &[u8]) -> Self {
+        let mut offset = 0;
+        let mut segment_prefix: Option<SegmentRegister> = None;
 
-            let mod_rm = decode_modrm(bytes, ModRMType::Register);
+        loop {
+            if bytes[offset] >> 5 == 0b001 && bytes[offset] & 0b00000111 == 0b110 {
+                segment_prefix = Some(SegmentRegister::from((bytes[offset] & 0b00011000) >> 3));
+            } else {
+                break;
+            }
+
+            offset += 1;
+        }
+
+        if bytes[offset] >> 2 == 0b100010 {
+            let direction = Direction::from((bytes[offset] & 0b00000010) >> 1);
+
+            let mod_rm = decode_modrm(bytes, ModRMType::Register, segment_prefix, offset);
 
             return match direction {
                 Direction::RegToRM => Self {
@@ -50,8 +66,8 @@ impl From<[u8; 6]> for Instruction {
                     size: mod_rm.size,
                 },
             };
-        } else if bytes[0] >> 1 == 0b1100011 {
-            let mod_rm = decode_modrm(bytes, ModRMType::Immediate(false));
+        } else if bytes[offset] >> 1 == 0b1100011 {
+            let mod_rm = decode_modrm(bytes, ModRMType::Immediate(false), segment_prefix, offset);
 
             return Self {
                 data: InstructionData::MOV {
@@ -61,28 +77,31 @@ impl From<[u8; 6]> for Instruction {
                 },
                 size: mod_rm.size,
             };
-        } else if bytes[0] >> 4 == 0b1011 {
-            let width = Width::from((bytes[0] & 0b00001000) >> 3);
-            let reg = bytes[0] & 0b00000111;
+        } else if bytes[offset] >> 4 == 0b1011 {
+            let width = Width::from((bytes[offset] & 0b00001000) >> 3);
+            let reg = bytes[offset] & 0b00000111;
 
             return Self {
                 data: InstructionData::MOV {
                     width,
                     destination: Operand::Register(Register { width, value: reg }),
                     source: Operand::Immediate(Immediate::Unsigned(if width == Width::Byte {
-                        bytes[1] as u16
+                        bytes[offset + 1] as u16
                     } else {
-                        u16::from_le_bytes([bytes[1], bytes[2]])
+                        u16::from_le_bytes([bytes[offset + 1], bytes[offset + 2]])
                     })),
                 },
-                size: if width == Width::Word { 3 } else { 2 },
+                size: if width == Width::Word { 3 } else { 2 } + offset,
             };
-        } else if bytes[0] >> 2 == 0b101000 {
-            let direction = Direction::from((bytes[0] & 0b00000010) >> 1);
-            let width = Width::from(bytes[0] & 0b00000001);
-            let addr = u16::from_le_bytes([bytes[1], bytes[2]]);
+        } else if bytes[offset] >> 2 == 0b101000 {
+            let direction = Direction::from((bytes[offset] & 0b00000010) >> 1);
+            let width = Width::from(bytes[offset] & 0b00000001);
+            let addr = u16::from_le_bytes([bytes[offset + 1], bytes[offset + 2]]);
 
-            let memory = Operand::Memory(Memory::DirectAccess(addr));
+            let memory = Operand::Memory(Memory {
+                address: EAC::DirectAccess(addr),
+                segment_prefix,
+            });
             let register = Operand::Register(Register { width, value: 0 });
 
             return match direction {
@@ -92,7 +111,7 @@ impl From<[u8; 6]> for Instruction {
                         destination: register,
                         source: memory,
                     },
-                    size: 3,
+                    size: 3 + offset,
                 },
                 Direction::RMToReg => Self {
                     data: InstructionData::MOV {
@@ -100,13 +119,13 @@ impl From<[u8; 6]> for Instruction {
                         destination: memory,
                         source: register,
                     },
-                    size: 3,
+                    size: 3 + offset,
                 },
             };
-        } else if bytes[0] >> 2 == 0b100011 {
-            let direction = Direction::from((bytes[0] & 0b00000010) >> 1);
+        } else if bytes[offset] >> 2 == 0b100011 {
+            let direction = Direction::from((bytes[offset] & 0b00000010) >> 1);
 
-            let mod_rm = decode_modrm(bytes, ModRMType::SegmentRegister);
+            let mod_rm = decode_modrm(bytes, ModRMType::SegmentRegister, segment_prefix, offset);
 
             return match direction {
                 Direction::RegToRM => Self {
@@ -126,12 +145,12 @@ impl From<[u8; 6]> for Instruction {
                     size: mod_rm.size,
                 },
             };
-        } else if bytes[0] & 0b11000100 == 0 {
-            let direction = Direction::from((bytes[0] & 0b00000010) >> 1);
-            let literal = (bytes[0] & 0b00111000) >> 3;
+        } else if bytes[offset] & 0b11000100 == 0 {
+            let direction = Direction::from((bytes[offset] & 0b00000010) >> 1);
+            let literal = (bytes[offset] & 0b00111000) >> 3;
 
             let op_code = get_alu_op_code(literal);
-            let mod_rm = decode_modrm(bytes, ModRMType::Register);
+            let mod_rm = decode_modrm(bytes, ModRMType::Register, segment_prefix, offset);
 
             return match direction {
                 Direction::RegToRM => Self {
@@ -153,12 +172,17 @@ impl From<[u8; 6]> for Instruction {
                     size: mod_rm.size,
                 },
             };
-        } else if bytes[0] >> 6 == 0b10 && bytes[0] & 0b00000100 == 0 {
-            let sign_extend = bytes[0] & 0b00000010 != 0;
-            let literal = (bytes[1] & 0b00111000) >> 3;
+        } else if bytes[offset] >> 6 == 0b10 && bytes[offset] & 0b00000100 == 0 {
+            let sign_extend = bytes[offset] & 0b00000010 != 0;
+            let literal = (bytes[offset + 1] & 0b00111000) >> 3;
 
             let op_code = get_alu_op_code(literal);
-            let mod_rm = decode_modrm(bytes, ModRMType::Immediate(sign_extend));
+            let mod_rm = decode_modrm(
+                bytes,
+                ModRMType::Immediate(sign_extend),
+                segment_prefix,
+                offset,
+            );
 
             return Self {
                 data: InstructionData::ALU {
@@ -169,15 +193,18 @@ impl From<[u8; 6]> for Instruction {
                 },
                 size: mod_rm.size,
             };
-        } else if bytes[0] >> 6 == 0b00 && (bytes[0] & 0b00000110) >> 1 == 0b10 {
-            let width = Width::from(bytes[0] & 0b00000001);
-            let literal = (bytes[0] & 0b00111000) >> 3;
+        } else if bytes[offset] >> 6 == 0b00 && (bytes[offset] & 0b00000110) >> 1 == 0b10 {
+            let width = Width::from(bytes[offset] & 0b00000001);
+            let literal = (bytes[offset] & 0b00111000) >> 3;
 
             let op_code = get_alu_op_code(literal);
 
             let (data, size) = match width {
-                Width::Byte => (bytes[1] as u16, 2),
-                Width::Word => (u16::from_le_bytes([bytes[1], bytes[2]]), 3),
+                Width::Byte => (bytes[offset + 1] as u16, 2),
+                Width::Word => (
+                    u16::from_le_bytes([bytes[offset + 1], bytes[offset + 2]]),
+                    3,
+                ),
             };
 
             let immediate = Operand::Immediate(Immediate::Unsigned(data));
@@ -196,9 +223,9 @@ impl From<[u8; 6]> for Instruction {
             return Self {
                 data: InstructionData::Jump {
                     op_code,
-                    target: bytes[1] as i8 + 2,
+                    target: bytes[offset + 1] as i8 + 2,
                 },
-                size: 2,
+                size: 2 + offset,
             };
         }
 

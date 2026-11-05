@@ -5,13 +5,7 @@ impl Sim86 {
         let len = self.program.len();
 
         while self.ip < len {
-            let mut bytes = [0u8; 6];
-
-            let bytes_left = (len - self.ip).min(6);
-
-            bytes[..bytes_left].copy_from_slice(&self.program[self.ip..self.ip + bytes_left]);
-
-            let instruction = Instruction::from(bytes);
+            let instruction = Instruction::from(&self.program[self.ip..]);
 
             self.ip += instruction.size;
 

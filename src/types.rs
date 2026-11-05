@@ -160,31 +160,41 @@ impl Display for SegmentRegister {
     }
 }
 
-pub enum Memory {
-    EAC(EAC),
-    DirectAccess(u16),
+pub struct Memory {
+    pub address: EAC,
+    pub segment_prefix: Option<SegmentRegister>,
 }
 
 impl Display for Memory {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Memory::EAC(eac) => write!(f, "[{}]", eac),
-            Memory::DirectAccess(address) => write!(f, "[{}]", address),
+        match &self.segment_prefix {
+            Some(segment_prefix) => write!(f, "{}:[{}]", segment_prefix, self.address),
+            None => write!(f, "[{}]", self.address),
         }
     }
 }
 
-pub struct EAC {
-    pub base: Register,
-    pub index: Option<Register>,
-    pub displacement: i16,
+pub enum EAC {
+    Calculation {
+        base: Register,
+        index: Option<Register>,
+        displacement: i16,
+    },
+    DirectAccess(u16),
 }
 
 impl Display for EAC {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match &self.index {
-            Some(index) => write!(f, "{}+{}{:+}", self.base, index, self.displacement),
-            None => write!(f, "{}{:+}", self.base, self.displacement),
+        match self {
+            EAC::Calculation {
+                base,
+                index,
+                displacement,
+            } => match index {
+                Some(index) => write!(f, "{}+{}{:+}", base, index, displacement),
+                None => write!(f, "{}{:+}", base, displacement),
+            },
+            EAC::DirectAccess(address) => write!(f, "{}", address),
         }
     }
 }

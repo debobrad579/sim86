@@ -18,13 +18,8 @@ fn main() -> std::io::Result<()> {
     let mut count = len;
     while count > 0 {
         let i = len - count;
-        let mut bytes = [0u8; 6];
 
-        let bytes_left = count.min(6);
-
-        bytes[..bytes_left].copy_from_slice(&data[i..i + bytes_left]);
-
-        let instruction = Instruction::from(bytes);
+        let instruction = Instruction::from(&data[i..]);
 
         println!("{}", instruction);
 
