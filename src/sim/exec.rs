@@ -1,10 +1,10 @@
 use crate::{
     sim::Sim86,
-    types::{ALUOpCode, Instruction, InstructionData},
+    types::{ALUOpCode, Instruction, InstructionData, JumpOpCode},
 };
 
 impl Sim86 {
-    pub fn execute_instruction(&mut self, instruction: Instruction) {
+    pub(super) fn execute_instruction(&mut self, instruction: Instruction) {
         match instruction.data {
             InstructionData::MOV {
                 destination,
@@ -42,7 +42,25 @@ impl Sim86 {
                 }
                 _ => unimplemented!(),
             },
-            InstructionData::Jump { .. } => todo!(),
+            InstructionData::Jump { op_code, target } => {
+                if match op_code {
+                    JumpOpCode::JO => self.get_overflow_flag(),
+                    JumpOpCode::JNO => !self.get_overflow_flag(),
+                    JumpOpCode::JE => self.get_zero_flag(),
+                    JumpOpCode::JNE => !self.get_zero_flag(),
+                    JumpOpCode::JS => self.get_sign_flag(),
+                    JumpOpCode::JNS => !self.get_sign_flag(),
+                    JumpOpCode::JP => self.get_parity_flag(),
+                    JumpOpCode::JNP => !self.get_parity_flag(),
+                    JumpOpCode::JB => self.get_carry_flag(),
+                    JumpOpCode::JNB => !self.get_carry_flag(),
+                    JumpOpCode::JL => self.get_sign_flag() != self.get_overflow_flag(),
+                    JumpOpCode::JNL => self.get_sign_flag() == self.get_overflow_flag(),
+                    _ => unimplemented!(),
+                } {
+                    self.update_instruction_pointer(target - 2);
+                }
+            }
         }
     }
 }

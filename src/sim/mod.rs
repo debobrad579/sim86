@@ -3,11 +3,24 @@ use std::fmt::Debug;
 pub mod exec;
 pub mod flags;
 pub mod get_set;
+pub mod run;
 
-#[derive(Default)]
 pub struct Sim86 {
+    program: Box<[u8]>,
     registers: [u16; 8],
+    instruction_pointer: usize,
     flags: u16,
+}
+
+impl Sim86 {
+    pub fn new(program: Box<[u8]>) -> Self {
+        Self {
+            program,
+            registers: [0; 8],
+            instruction_pointer: 0,
+            flags: 0,
+        }
+    }
 }
 
 impl Debug for Sim86 {
