@@ -6,9 +6,7 @@ use crate::{
         memory::{ModRMType, decode_modrm},
         op_code::{get_alu_op_code, get_conditional_jump_op_code},
     },
-    types::{
-        Immediate, Instruction, InstructionData, Memory, Operand, Register, SegmentRegister, Width,
-    },
+    types::{Immediate, Instruction, InstructionData, Memory, Operand, Register, Width},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -107,7 +105,6 @@ impl From<[u8; 6]> for Instruction {
             };
         } else if bytes[0] >> 2 == 0b100011 {
             let direction = Direction::from((bytes[0] & 0b00000010) >> 1);
-            let sr = SegmentRegister::from((bytes[0] & 0b00011000) >> 3);
 
             let mod_rm = decode_modrm(bytes, ModRMType::SegmentRegister);
 

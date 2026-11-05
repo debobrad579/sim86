@@ -136,6 +136,12 @@ impl Display for Register {
 
 pub struct SegmentRegister(u8);
 
+impl SegmentRegister {
+    pub fn value(&self) -> u8 {
+        self.0
+    }
+}
+
 impl From<u8> for SegmentRegister {
     fn from(value: u8) -> Self {
         Self(value)

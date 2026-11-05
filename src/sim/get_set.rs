@@ -12,7 +12,7 @@ impl Sim86 {
                 Immediate::SignExtended(value) => *value as u16,
                 Immediate::Unsigned(value) => *value,
             },
-            Operand::SegmentRegistry(_sr) => todo!(),
+            Operand::SegmentRegistry(sr) => self.segment_registers[sr.value() as usize],
         }
     }
 
@@ -20,7 +20,8 @@ impl Sim86 {
         match operand {
             Operand::Register(register) => self.set_register(register, value),
             Operand::Memory(_memory) => todo!(),
-            _ => unreachable!(),
+            Operand::SegmentRegistry(sr) => self.segment_registers[sr.value() as usize] = value,
+            Operand::Immediate(_) => unreachable!(),
         }
     }
 
