@@ -4,13 +4,13 @@ use crate::{
 };
 
 impl Sim86 {
-    pub(super) fn get_value(&self, operand: Operand) -> u16 {
+    pub(super) fn get_value(&self, operand: &Operand) -> u16 {
         match operand {
             Operand::Register(register) => self.get_register(register),
             Operand::Memory(_memory) => todo!(),
             Operand::Immediate(immediate) => match immediate {
-                Immediate::SignExtended(value) => value as u16,
-                Immediate::Unsigned(value) => value,
+                Immediate::SignExtended(value) => *value as u16,
+                Immediate::Unsigned(value) => *value,
             },
         }
     }
@@ -23,7 +23,7 @@ impl Sim86 {
         }
     }
 
-    pub(super) fn get_register(&self, register: Register) -> u16 {
+    pub(super) fn get_register(&self, register: &Register) -> u16 {
         match register.width {
             Width::Byte => {
                 if register.value < 4 {

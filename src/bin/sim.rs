@@ -30,10 +30,12 @@ fn main() -> std::io::Result<()> {
 
         count -= instruction.size;
 
-        sim86.execute_instruction(instruction);
-    }
+        println!("\n{}", instruction);
 
-    println!("{:?}", sim86);
+        sim86.execute_instruction(instruction);
+
+        println!("{:?}", sim86);
+    }
 
     Ok(())
 }
