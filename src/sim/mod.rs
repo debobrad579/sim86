@@ -31,9 +31,8 @@ impl Debug for Sim86 {
 BX:{:04X} | BP:{:04X}
 CX:{:04X} | SI:{:04X}
 DX:{:04X} | DI:{:04X}
-CF:{} | PF:{} | AF:{}
-ZF:{} | SF:{} | OF:{}
-TF:{} | IF:{} | DF:{}",
+IP:{:04X}
+Flags:{}{}{}{}{}{}{}{}{}",
             self.registers[0],
             self.registers[4],
             self.registers[3],
@@ -42,15 +41,20 @@ TF:{} | IF:{} | DF:{}",
             self.registers[6],
             self.registers[2],
             self.registers[7],
-            self.get_carry_flag(),
-            self.get_parity_flag(),
-            self.get_auxiliary_carry_flag(),
-            self.get_zero_flag(),
-            self.get_sign_flag(),
-            self.get_overflow_flag(),
-            self.get_trap_flag(),
-            self.get_interrupt_flag(),
-            self.get_direction_flag(),
+            self.ip,
+            if self.get_carry_flag() { "C" } else { "" },
+            if self.get_parity_flag() { "P" } else { "" },
+            if self.get_auxiliary_carry_flag() {
+                "A"
+            } else {
+                ""
+            },
+            if self.get_zero_flag() { "Z" } else { "" },
+            if self.get_sign_flag() { "S" } else { "" },
+            if self.get_trap_flag() { "T" } else { "" },
+            if self.get_interrupt_flag() { "I" } else { "" },
+            if self.get_direction_flag() { "D" } else { "" },
+            if self.get_overflow_flag() { "O" } else { "" },
         )
     }
 }

@@ -27,11 +27,11 @@ impl Sim86 {
         }
     }
 
-    pub(super) fn update_ip(&mut self, amount: i8) {
-        if amount >= 0 {
-            self.ip += amount as usize
+    pub(super) fn update_ip(&mut self, offset: i8) {
+        if offset >= 0 {
+            self.ip += offset as usize
         } else {
-            self.ip -= (-amount) as usize
+            self.ip -= (-offset) as usize
         }
     }
 }
