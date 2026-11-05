@@ -12,6 +12,7 @@ impl Sim86 {
                 Immediate::SignExtended(value) => *value as u16,
                 Immediate::Unsigned(value) => *value,
             },
+            Operand::SegmentRegistry(_sr) => todo!(),
         }
     }
 

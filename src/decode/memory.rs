@@ -1,4 +1,4 @@
-use crate::types::{EAC, Immediate, Memory, Operand, Register, Width};
+use crate::types::{EAC, Immediate, Memory, Operand, Register, SegmentRegister, Width};
 
 pub struct ModRM {
     pub reg: Operand,
@@ -7,10 +7,20 @@ pub struct ModRM {
     pub size: usize,
 }
 
-pub fn decode_modrm(bytes: [u8; 6], immediate: bool, sign_extend: bool) -> ModRM {
-    let width = Width::from(bytes[0] & 0b00000001);
+pub enum ModRMType {
+    Register,
+    Immediate(bool),
+    SegmentRegister,
+}
+
+pub fn decode_modrm(bytes: [u8; 6], operand_type: ModRMType) -> ModRM {
+    let width = if let ModRMType::SegmentRegister = operand_type {
+        Width::from(1)
+    } else {
+        Width::from(bytes[0] & 0b00000001)
+    };
+
     let mode = bytes[1] >> 6;
-    let reg = (bytes[1] & 0b00111000) >> 3;
     let rm = bytes[1] & 0b00000111;
 
     let (rm_value, displacement_size): (Operand, usize) = match mode {
@@ -41,44 +51,54 @@ pub fn decode_modrm(bytes: [u8; 6], immediate: bool, sign_extend: bool) -> ModRM
         _ => unreachable!(),
     };
 
-    if immediate {
-        let immediate_size = if sign_extend {
-            1
-        } else {
-            match width {
-                Width::Byte => 1,
-                Width::Word => 2,
-            }
-        };
-
-        let offset = 2 + displacement_size;
-
-        let raw_value = match immediate_size {
-            1 => bytes[offset] as u16,
-            2 => u16::from_le_bytes([bytes[offset], bytes[offset + 1]]),
-            _ => unreachable!(),
-        };
-
-        let immediate = if sign_extend {
-            Operand::Immediate(Immediate::SignExtended(raw_value as u8 as i8 as i16))
-        } else {
-            Operand::Immediate(Immediate::Unsigned(raw_value))
-        };
-
-        return ModRM {
+    return match operand_type {
+        ModRMType::Register => ModRM {
             rm: rm_value,
-            reg: immediate,
+            reg: Operand::Register(Register {
+                width,
+                value: (bytes[1] & 0b00111000) >> 3,
+            }),
             width,
-            size: offset + immediate_size,
-        };
-    }
+            size: displacement_size + 2,
+        },
+        ModRMType::Immediate(sign_extend) => {
+            let immediate_size = if sign_extend {
+                1
+            } else {
+                match width {
+                    Width::Byte => 1,
+                    Width::Word => 2,
+                }
+            };
 
-    ModRM {
-        rm: rm_value,
-        reg: Operand::Register(Register { width, value: reg }),
-        width,
-        size: displacement_size + 2,
-    }
+            let offset = 2 + displacement_size;
+
+            let raw_value = match immediate_size {
+                1 => bytes[offset] as u16,
+                2 => u16::from_le_bytes([bytes[offset], bytes[offset + 1]]),
+                _ => unreachable!(),
+            };
+
+            let immediate = if sign_extend {
+                Operand::Immediate(Immediate::SignExtended(raw_value as u8 as i8 as i16))
+            } else {
+                Operand::Immediate(Immediate::Unsigned(raw_value))
+            };
+
+            ModRM {
+                rm: rm_value,
+                reg: immediate,
+                width,
+                size: offset + immediate_size,
+            }
+        }
+        ModRMType::SegmentRegister => ModRM {
+            rm: rm_value,
+            reg: Operand::SegmentRegistry(SegmentRegister::from((bytes[1] & 0b00011000) >> 3)),
+            width,
+            size: displacement_size + 2,
+        },
+    };
 }
 
 fn get_effective_address_expression(rm: u8, displacement: i16) -> Memory {

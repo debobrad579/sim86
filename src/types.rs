@@ -86,6 +86,7 @@ pub enum Operand {
     Register(Register),
     Memory(Memory),
     Immediate(Immediate),
+    SegmentRegistry(SegmentRegister),
 }
 
 impl Display for Operand {
@@ -94,6 +95,7 @@ impl Display for Operand {
             Operand::Register(register) => write!(f, "{}", register),
             Operand::Memory(memory) => write!(f, "{}", memory),
             Operand::Immediate(immediate) => write!(f, "{}", immediate),
+            Operand::SegmentRegistry(sr) => write!(f, "{}", sr),
         }
     }
 }
@@ -128,6 +130,26 @@ impl Display for Register {
                 0b111 => write!(f, "DI"),
                 _ => unreachable!(),
             },
+        }
+    }
+}
+
+pub struct SegmentRegister(u8);
+
+impl From<u8> for SegmentRegister {
+    fn from(value: u8) -> Self {
+        Self(value)
+    }
+}
+
+impl Display for SegmentRegister {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self.0 {
+            0b00 => write!(f, "ES"),
+            0b01 => write!(f, "CS"),
+            0b10 => write!(f, "SS"),
+            0b11 => write!(f, "DS"),
+            _ => unreachable!(),
         }
     }
 }

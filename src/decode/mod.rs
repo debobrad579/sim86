@@ -3,10 +3,12 @@ pub mod op_code;
 
 use crate::{
     decode::{
-        memory::decode_modrm,
+        memory::{ModRMType, decode_modrm},
         op_code::{get_alu_op_code, get_conditional_jump_op_code},
     },
-    types::{Immediate, Instruction, InstructionData, Memory, Operand, Register, Width},
+    types::{
+        Immediate, Instruction, InstructionData, Memory, Operand, Register, SegmentRegister, Width,
+    },
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -30,7 +32,7 @@ impl From<[u8; 6]> for Instruction {
         if bytes[0] >> 2 == 0b100010 {
             let direction = Direction::from((bytes[0] & 0b00000010) >> 1);
 
-            let mod_rm = decode_modrm(bytes, false, false);
+            let mod_rm = decode_modrm(bytes, ModRMType::Register);
 
             return match direction {
                 Direction::RegToRM => Self {
@@ -51,7 +53,7 @@ impl From<[u8; 6]> for Instruction {
                 },
             };
         } else if bytes[0] >> 1 == 0b1100011 {
-            let mod_rm = decode_modrm(bytes, true, false);
+            let mod_rm = decode_modrm(bytes, ModRMType::Immediate(false));
 
             return Self {
                 data: InstructionData::MOV {
@@ -103,12 +105,36 @@ impl From<[u8; 6]> for Instruction {
                     size: 3,
                 },
             };
+        } else if bytes[0] >> 2 == 0b100011 {
+            let direction = Direction::from((bytes[0] & 0b00000010) >> 1);
+            let sr = SegmentRegister::from((bytes[0] & 0b00011000) >> 3);
+
+            let mod_rm = decode_modrm(bytes, ModRMType::SegmentRegister);
+
+            return match direction {
+                Direction::RegToRM => Self {
+                    data: InstructionData::MOV {
+                        width: mod_rm.width,
+                        destination: mod_rm.rm,
+                        source: mod_rm.reg,
+                    },
+                    size: mod_rm.size,
+                },
+                Direction::RMToReg => Self {
+                    data: InstructionData::MOV {
+                        width: mod_rm.width,
+                        destination: mod_rm.reg,
+                        source: mod_rm.rm,
+                    },
+                    size: mod_rm.size,
+                },
+            };
         } else if bytes[0] & 0b11000100 == 0 {
             let direction = Direction::from((bytes[0] & 0b00000010) >> 1);
             let literal = (bytes[0] & 0b00111000) >> 3;
 
             let op_code = get_alu_op_code(literal);
-            let mod_rm = decode_modrm(bytes, false, false);
+            let mod_rm = decode_modrm(bytes, ModRMType::Register);
 
             return match direction {
                 Direction::RegToRM => Self {
@@ -135,7 +161,7 @@ impl From<[u8; 6]> for Instruction {
             let literal = (bytes[1] & 0b00111000) >> 3;
 
             let op_code = get_alu_op_code(literal);
-            let mod_rm = decode_modrm(bytes, true, sign_extend);
+            let mod_rm = decode_modrm(bytes, ModRMType::Immediate(sign_extend));
 
             return Self {
                 data: InstructionData::ALU {
