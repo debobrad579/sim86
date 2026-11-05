@@ -16,7 +16,7 @@ fn main() -> std::io::Result<()> {
 
     let mut sim86 = Sim86::new(program);
 
-    sim86.run();
+    sim86.run(true);
 
     Ok(())
 }

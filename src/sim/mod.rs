@@ -8,7 +8,7 @@ pub mod run;
 pub struct Sim86 {
     program: Box<[u8]>,
     registers: [u16; 8],
-    instruction_pointer: usize,
+    ip: usize,
     flags: u16,
 }
 
@@ -17,7 +17,7 @@ impl Sim86 {
         Self {
             program,
             registers: [0; 8],
-            instruction_pointer: 0,
+            ip: 0,
             flags: 0,
         }
     }
