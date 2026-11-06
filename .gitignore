@@ -1,1 +1,6 @@
 /target
+
+/tests/decode/*
+!/tests/decode/*.asm
+/tests/sim/*
+!/tests/sim/*.asm

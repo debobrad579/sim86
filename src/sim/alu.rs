@@ -9,36 +9,38 @@ struct ALUFlags {
     pub overflow: Option<bool>,
 }
 
-fn add(a: u16, b: u16, width: Width) -> (u16, ALUFlags) {
+fn add(a: u16, b: u16, carry_in: bool, width: Width) -> (u16, ALUFlags) {
     let mask = width.mask();
     let a = a & mask;
     let b = b & mask;
+    let carry_in = u16::from(carry_in);
 
-    let wide = u32::from(a) + u32::from(b);
+    let wide = u32::from(a) + u32::from(b) + u32::from(carry_in);
     let result = (wide as u16) & mask;
 
     (
         result,
         ALUFlags {
             carry: Some(wide > u32::from(mask)),
-            auxiliary_carry: Some(((a ^ b ^ result) & 0x10) != 0),
+            auxiliary_carry: Some(((a & 0x0F) + (b & 0x0F) + carry_in) > 0x0F),
             overflow: Some((!(a ^ b) & (a ^ result) & width.sign_bit()) != 0),
         },
     )
 }
 
-fn sub(a: u16, b: u16, width: Width) -> (u16, ALUFlags) {
+fn sub(a: u16, b: u16, borrow_in: bool, width: Width) -> (u16, ALUFlags) {
     let mask = width.mask();
     let a = a & mask;
     let b = b & mask;
+    let borrow_in = u16::from(borrow_in);
 
-    let result = a.wrapping_sub(b) & mask;
+    let result = a.wrapping_sub(b).wrapping_sub(borrow_in) & mask;
 
     (
         result,
         ALUFlags {
-            carry: Some(a < b),
-            auxiliary_carry: Some(((a ^ b ^ result) & 0x10) != 0),
+            carry: Some(u32::from(a) < u32::from(b) + u32::from(borrow_in)),
+            auxiliary_carry: Some((a & 0x0F) < (b & 0x0F) + borrow_in),
             overflow: Some(((a ^ b) & (a ^ result) & width.sign_bit()) != 0),
         },
     )
@@ -92,19 +94,25 @@ impl Sim86 {
 
         let (result, flags, write_result) = match op_code {
             ALUOpCode::ADD => {
-                let (result, flags) = add(a, b, width);
+                let (result, flags) = add(a, b, false, width);
+                (result, flags, true)
+            }
+            ALUOpCode::ADC => {
+                let (result, flags) = add(a, b, true, width);
                 (result, flags, true)
             }
             ALUOpCode::SUB => {
-                let (result, flags) = sub(a, b, width);
+                let (result, flags) = sub(a, b, false, width);
+                (result, flags, true)
+            }
+            ALUOpCode::SBB => {
+                let (result, flags) = sub(a, b, true, width);
                 (result, flags, true)
             }
             ALUOpCode::CMP => {
-                let (result, flags) = sub(a, b, width);
+                let (result, flags) = sub(a, b, false, width);
                 (result, flags, false)
             }
-            ALUOpCode::ADC => todo!(),
-            ALUOpCode::SBB => todo!(),
             ALUOpCode::AND => {
                 let (result, flags) = and(a, b);
                 (result, flags, true)
@@ -128,8 +136,6 @@ impl Sim86 {
             ALUOpCode::IMUL => todo!(),
             ALUOpCode::DIV => todo!(),
             ALUOpCode::IDIV => todo!(),
-            ALUOpCode::INC => todo!(),
-            ALUOpCode::DEC => todo!(),
         };
 
         self.set_zero_flag(result == 0);

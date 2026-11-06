@@ -251,8 +251,6 @@ pub enum ALUOpCode {
     IMUL,
     DIV,
     IDIV,
-    INC,
-    DEC,
 }
 
 impl Display for ALUOpCode {
