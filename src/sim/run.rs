@@ -14,7 +14,7 @@ impl Sim86 {
             self.ip += instruction.size;
 
             if print {
-                println!("\n{}", instruction);
+                println!("{}", instruction);
             }
 
             if let InstructionData::HLT = instruction.data {
@@ -22,10 +22,10 @@ impl Sim86 {
             }
 
             self.execute_instruction(instruction);
+        }
 
-            if print {
-                println!("{:?}", self);
-            }
+        if print {
+            println!("{:?}", self);
         }
 
         let mut file = File::create("memory.data").unwrap();

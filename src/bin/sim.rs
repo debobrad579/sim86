@@ -14,7 +14,8 @@ fn main() -> std::io::Result<()> {
 
     let program = std::fs::read(file_path)?;
 
-    let mut sim86 = Sim86::new(&program);
+    let mut sim86 = Sim86::default();
+    sim86.load(&program);
 
     sim86.run(true);
 

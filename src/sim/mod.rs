@@ -15,18 +15,21 @@ pub struct Sim86 {
     flags: u16,
 }
 
-impl Sim86 {
-    pub fn new(program: &[u8]) -> Self {
-        let mut memory = [0; 1024 * 1024];
-        memory[..program.len()].copy_from_slice(program);
-
+impl Default for Sim86 {
+    fn default() -> Self {
         Self {
-            memory,
+            memory: [0; 1024 * 1024],
             registers: [0; 8],
             segment_registers: [0; 4],
             ip: 0,
             flags: 0,
         }
+    }
+}
+
+impl Sim86 {
+    pub fn load(&mut self, program: &[u8]) {
+        self.memory[..program.len()].copy_from_slice(program);
     }
 }
 

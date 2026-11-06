@@ -4,3 +4,5 @@
 !/tests/decode/*.asm
 /tests/sim/*
 !/tests/sim/*.asm
+
+*.data
