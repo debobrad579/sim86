@@ -10,7 +10,7 @@ pub fn get_alu_unary_op_code(literal: u8) -> AluUnaryOpCode {
         0b101 => AluUnaryOpCode::IMUL,
         0b110 => AluUnaryOpCode::DIV,
         0b111 => AluUnaryOpCode::IDIV,
-        _ => unreachable!(),
+        _ => unreachable!("invalid unary alu op code"),
     }
 }
 
@@ -24,32 +24,32 @@ pub fn get_alu_binary_op_code(literal: u8) -> AluBinaryOpCode {
         0b101 => AluBinaryOpCode::SUB,
         0b110 => AluBinaryOpCode::XOR,
         0b111 => AluBinaryOpCode::CMP,
-        _ => unreachable!(),
+        _ => unreachable!("invalid binary alu op code"),
     }
 }
 
-pub fn get_conditional_jump_op_code(literal: u8) -> Option<JumpOpCode> {
+pub fn get_conditional_jump_op_code(literal: u8) -> JumpOpCode {
     match literal {
-        0b01110000 => Some(JumpOpCode::JO),
-        0b01110001 => Some(JumpOpCode::JNO),
-        0b01110010 => Some(JumpOpCode::JB),
-        0b01110011 => Some(JumpOpCode::JNB),
-        0b01110100 => Some(JumpOpCode::JE),
-        0b01110101 => Some(JumpOpCode::JNE),
-        0b01110110 => Some(JumpOpCode::JBE),
-        0b01110111 => Some(JumpOpCode::JNBE),
-        0b01111000 => Some(JumpOpCode::JS),
-        0b01111001 => Some(JumpOpCode::JNS),
-        0b01111010 => Some(JumpOpCode::JP),
-        0b01111011 => Some(JumpOpCode::JNP),
-        0b01111100 => Some(JumpOpCode::JL),
-        0b01111101 => Some(JumpOpCode::JNL),
-        0b01111110 => Some(JumpOpCode::JLE),
-        0b01111111 => Some(JumpOpCode::JNLE),
-        0b11100000 => Some(JumpOpCode::LOOPNZ),
-        0b11100001 => Some(JumpOpCode::LOOPZ),
-        0b11100010 => Some(JumpOpCode::LOOP),
-        0b11100011 => Some(JumpOpCode::JCXZ),
-        _ => None,
+        0b01110000 => JumpOpCode::JO,
+        0b01110001 => JumpOpCode::JNO,
+        0b01110010 => JumpOpCode::JB,
+        0b01110011 => JumpOpCode::JNB,
+        0b01110100 => JumpOpCode::JE,
+        0b01110101 => JumpOpCode::JNE,
+        0b01110110 => JumpOpCode::JBE,
+        0b01110111 => JumpOpCode::JNBE,
+        0b01111000 => JumpOpCode::JS,
+        0b01111001 => JumpOpCode::JNS,
+        0b01111010 => JumpOpCode::JP,
+        0b01111011 => JumpOpCode::JNP,
+        0b01111100 => JumpOpCode::JL,
+        0b01111101 => JumpOpCode::JNL,
+        0b01111110 => JumpOpCode::JLE,
+        0b01111111 => JumpOpCode::JNLE,
+        0b11100000 => JumpOpCode::LOOPNZ,
+        0b11100001 => JumpOpCode::LOOPZ,
+        0b11100010 => JumpOpCode::LOOP,
+        0b11100011 => JumpOpCode::JCXZ,
+        _ => unreachable!("invalid jump op code"),
     }
 }

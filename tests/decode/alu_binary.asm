@@ -68,12 +68,12 @@ and cx, [4384]
 and byte [bp - 39], 239
 and word [bx + si - 4332], 10328
 
-; test bx, cx
-; test dh, [bp + 390]
-; test [bp + 2], si
-; test bl, 20
-; test byte [bx], 34
-; test ax, 23909
+test bx, cx
+test dh, [bp + 390]
+test [bp + 2], si
+test bl, 20
+test byte [bx], 34
+test ax, 23909
 
 or al, ah
 or ch, cl
