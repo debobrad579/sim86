@@ -129,9 +129,6 @@ impl Sim86 {
                 let (result, flags) = and(a, b);
                 (result, flags, false)
             }
-            AluBinaryOpCode::SHR => todo!(),
-            AluBinaryOpCode::SAR => todo!(),
-            AluBinaryOpCode::SHL => todo!(),
         };
 
         self.set_alu_flags(result, flags, width);

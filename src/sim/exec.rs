@@ -22,6 +22,12 @@ impl Sim86 {
                 width,
                 operand,
             } => self.exec_alu_unary_instruction(op_code, operand, width),
+            InstructionData::ShiftRotate {
+                op_code,
+                width,
+                operand,
+                amount,
+            } => todo!(),
             InstructionData::Jump { op_code, target } => {
                 self.exec_jump_instruction(op_code, target)
             }

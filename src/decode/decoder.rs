@@ -1,5 +1,5 @@
 use crate::{
-    decode::{alu, misc, mov, op_code::get_conditional_jump_op_code},
+    decode::{alu, misc, mov, op_code::get_conditional_jump_op_code, shift_rotate},
     types::{AluBinaryOpCode, Instruction, SegmentRegister},
 };
 
@@ -36,6 +36,7 @@ impl From<&[u8]> for Instruction {
             }
             0xF6 | 0xF7 | 0xFE | 0xFF => alu::unary_rm(bytes, segment_override),
             0x40..=0x5F => alu::unary_reg(bytes),
+            0xD0..=0xD3 => shift_rotate::shift_rotate_rm(bytes, segment_override),
             0x70..=0x7F | 0xE0..=0xE3 => {
                 misc::conditional_jump(bytes, get_conditional_jump_op_code(bytes[0]))
             }

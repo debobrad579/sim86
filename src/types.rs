@@ -56,6 +56,12 @@ pub enum InstructionData {
         width: Width,
         operand: Operand,
     },
+    ShiftRotate {
+        op_code: ShiftRotateOpCode,
+        width: Width,
+        operand: Operand,
+        amount: Operand,
+    },
     Jump {
         op_code: JumpOpCode,
         target: i8,
@@ -115,6 +121,22 @@ impl Display for Instruction {
                 }
 
                 write!(f, "{}{}{}", op_code, size, operand)
+            }
+            InstructionData::ShiftRotate {
+                op_code,
+                width,
+                operand,
+                amount,
+            } => {
+                let mut size = " ";
+                if !matches!(operand, Operand::Register(_)) {
+                    match width {
+                        Width::Byte => size = " BYTE ",
+                        Width::Word => size = " WORD ",
+                    }
+                }
+
+                write!(f, "{}{}{},{}", op_code, size, operand, amount)
             }
             InstructionData::Jump { op_code, target } => write!(f, "{} ${:+}", op_code, target),
             InstructionData::HLT => write!(f, "HLT"),
@@ -282,12 +304,26 @@ pub enum AluBinaryOpCode {
     OR,
     XOR,
     TEST,
-    SHR,
-    SAR,
-    SHL,
 }
 
 impl Display for AluBinaryOpCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ShiftRotateOpCode {
+    SHL,
+    SHR,
+    SAR,
+    ROL,
+    ROR,
+    RCL,
+    RCR,
+}
+
+impl Display for ShiftRotateOpCode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self)
     }
