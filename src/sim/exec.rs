@@ -11,12 +11,17 @@ impl Sim86 {
                 source,
                 width,
             } => self.set_value(destination, self.get_value(&source, &width), &width),
-            InstructionData::ALU {
+            InstructionData::AluBinary {
                 op_code,
                 destination,
                 source,
                 width,
-            } => self.exec_alu_instruction(op_code, destination, source, width),
+            } => self.exec_alu_binary_instruction(op_code, destination, source, width),
+            InstructionData::AluUnary {
+                op_code,
+                width,
+                operand,
+            } => todo!(),
             InstructionData::Jump { op_code, target } => {
                 self.exec_jump_instruction(op_code, target)
             }

@@ -45,11 +45,16 @@ pub enum InstructionData {
         destination: Operand,
         source: Operand,
     },
-    ALU {
-        op_code: ALUOpCode,
+    AluBinary {
+        op_code: AluBinaryOpCode,
         width: Width,
         destination: Operand,
         source: Operand,
+    },
+    AluUnary {
+        op_code: AluUnaryOpCode,
+        width: Width,
+        operand: Operand,
     },
     Jump {
         op_code: JumpOpCode,
@@ -78,7 +83,7 @@ impl Display for Instruction {
 
                 write!(f, "MOV{}{},{}", size, destination, source)
             }
-            InstructionData::ALU {
+            InstructionData::AluBinary {
                 op_code,
                 width,
                 destination,
@@ -95,6 +100,21 @@ impl Display for Instruction {
                 }
 
                 write!(f, "{}{}{},{}", op_code, size, destination, source)
+            }
+            InstructionData::AluUnary {
+                op_code,
+                width,
+                operand,
+            } => {
+                let mut size = " ";
+                if !matches!(operand, Operand::Register(_)) {
+                    match width {
+                        Width::Byte => size = " BYTE ",
+                        Width::Word => size = " WORD ",
+                    }
+                }
+
+                write!(f, "{}{}{}", op_code, size, operand)
             }
             InstructionData::Jump { op_code, target } => write!(f, "{} ${:+}", op_code, target),
             InstructionData::HLT => write!(f, "HLT"),
@@ -234,7 +254,25 @@ impl Display for Immediate {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum ALUOpCode {
+pub enum AluUnaryOpCode {
+    NOT,
+    INC,
+    DEC,
+    NEG,
+    MUL,
+    IMUL,
+    DIV,
+    IDIV,
+}
+
+impl Display for AluUnaryOpCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AluBinaryOpCode {
     ADD,
     SUB,
     ADC,
@@ -247,13 +285,9 @@ pub enum ALUOpCode {
     SHR,
     SAR,
     SHL,
-    MUL,
-    IMUL,
-    DIV,
-    IDIV,
 }
 
-impl Display for ALUOpCode {
+impl Display for AluBinaryOpCode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self)
     }

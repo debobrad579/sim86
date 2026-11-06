@@ -1,15 +1,29 @@
-use crate::types::{ALUOpCode, JumpOpCode};
+use crate::types::{AluBinaryOpCode, AluUnaryOpCode, JumpOpCode};
 
-pub fn get_alu_op_code(literal: u8) -> ALUOpCode {
+pub fn get_alu_unary_op_code(literal: u8) -> AluUnaryOpCode {
     match literal {
-        0b000 => ALUOpCode::ADD,
-        0b001 => ALUOpCode::OR,
-        0b010 => ALUOpCode::ADC,
-        0b011 => ALUOpCode::SBB,
-        0b100 => ALUOpCode::AND,
-        0b101 => ALUOpCode::SUB,
-        0b110 => ALUOpCode::XOR,
-        0b111 => ALUOpCode::CMP,
+        0b000 => AluUnaryOpCode::INC,
+        0b001 => AluUnaryOpCode::DEC,
+        0b010 => AluUnaryOpCode::NOT,
+        0b011 => AluUnaryOpCode::NEG,
+        0b100 => AluUnaryOpCode::MUL,
+        0b101 => AluUnaryOpCode::IMUL,
+        0b110 => AluUnaryOpCode::DIV,
+        0b111 => AluUnaryOpCode::IDIV,
+        _ => unreachable!(),
+    }
+}
+
+pub fn get_alu_binary_op_code(literal: u8) -> AluBinaryOpCode {
+    match literal {
+        0b000 => AluBinaryOpCode::ADD,
+        0b001 => AluBinaryOpCode::OR,
+        0b010 => AluBinaryOpCode::ADC,
+        0b011 => AluBinaryOpCode::SBB,
+        0b100 => AluBinaryOpCode::AND,
+        0b101 => AluBinaryOpCode::SUB,
+        0b110 => AluBinaryOpCode::XOR,
+        0b111 => AluBinaryOpCode::CMP,
         _ => unreachable!(),
     }
 }

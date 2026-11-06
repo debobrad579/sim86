@@ -4,7 +4,7 @@ pub mod op_code;
 use crate::{
     decode::{
         memory::{ModRMType, decode_modrm},
-        op_code::{get_alu_op_code, get_conditional_jump_op_code},
+        op_code::{get_alu_binary_op_code, get_alu_unary_op_code, get_conditional_jump_op_code},
     },
     types::{
         EAC, Immediate, Instruction, InstructionData, Memory, Operand, Register, SegmentRegister,
@@ -149,12 +149,12 @@ impl From<&[u8]> for Instruction {
             let direction = Direction::from((bytes[offset] & 0b00000010) >> 1);
             let literal = (bytes[offset] & 0b00111000) >> 3;
 
-            let op_code = get_alu_op_code(literal);
+            let op_code = get_alu_binary_op_code(literal);
             let mod_rm = decode_modrm(bytes, ModRMType::Register, segment_override, offset);
 
             return match direction {
                 Direction::RegToRM => Self {
-                    data: InstructionData::ALU {
+                    data: InstructionData::AluBinary {
                         op_code,
                         width: mod_rm.width,
                         destination: mod_rm.rm,
@@ -163,7 +163,7 @@ impl From<&[u8]> for Instruction {
                     size: mod_rm.size,
                 },
                 Direction::RMToReg => Self {
-                    data: InstructionData::ALU {
+                    data: InstructionData::AluBinary {
                         op_code,
                         width: mod_rm.width,
                         destination: mod_rm.reg,
@@ -172,11 +172,25 @@ impl From<&[u8]> for Instruction {
                     size: mod_rm.size,
                 },
             };
+        } else if bytes[offset] >> 1 == 0b1111111 || bytes[offset] >> 1 == 0b1111011 {
+            let literal = (bytes[offset + 1] & 0b00111000) >> 3;
+
+            let op_code = get_alu_unary_op_code(literal);
+            let mod_rm = decode_modrm(bytes, ModRMType::Register, segment_override, offset);
+
+            return Self {
+                data: InstructionData::AluUnary {
+                    op_code,
+                    width: mod_rm.width,
+                    operand: mod_rm.rm,
+                },
+                size: mod_rm.size,
+            };
         } else if bytes[offset] >> 6 == 0b10 && bytes[offset] & 0b00000100 == 0 {
             let sign_extend = bytes[offset] & 0b00000010 != 0;
             let literal = (bytes[offset + 1] & 0b00111000) >> 3;
 
-            let op_code = get_alu_op_code(literal);
+            let op_code = get_alu_binary_op_code(literal);
             let mod_rm = decode_modrm(
                 bytes,
                 ModRMType::Immediate(sign_extend),
@@ -185,7 +199,7 @@ impl From<&[u8]> for Instruction {
             );
 
             return Self {
-                data: InstructionData::ALU {
+                data: InstructionData::AluBinary {
                     op_code,
                     width: mod_rm.width,
                     destination: mod_rm.rm,
@@ -197,7 +211,7 @@ impl From<&[u8]> for Instruction {
             let width = Width::from(bytes[offset] & 0b00000001);
             let literal = (bytes[offset] & 0b00111000) >> 3;
 
-            let op_code = get_alu_op_code(literal);
+            let op_code = get_alu_binary_op_code(literal);
 
             let (data, size) = match width {
                 Width::Byte => (bytes[offset + 1] as u16, 2),
@@ -211,7 +225,7 @@ impl From<&[u8]> for Instruction {
             let register = Operand::Register(Register { width, value: 0 });
 
             return Self {
-                data: InstructionData::ALU {
+                data: InstructionData::AluBinary {
                     op_code,
                     width,
                     destination: register,
@@ -219,15 +233,30 @@ impl From<&[u8]> for Instruction {
                 },
                 size,
             };
-        } else if let Some(op_code) = get_conditional_jump_op_code(bytes[0]) {
+        } else if let Some(op_code) = get_conditional_jump_op_code(bytes[offset]) {
             return Self {
                 data: InstructionData::Jump {
                     op_code,
                     target: bytes[offset + 1] as i8 + 2,
                 },
-                size: 2,
+                size: offset + 2,
             };
-        } else if bytes[0] == 0b11110100 {
+        } else if bytes[offset] >> 6 == 0b01 {
+            let literal = (bytes[offset] & 0b00111000) >> 3;
+            let reg = bytes[offset] & 0b00000111;
+
+            return Self {
+                data: InstructionData::AluUnary {
+                    op_code: get_alu_unary_op_code(literal),
+                    width: Width::Word,
+                    operand: Operand::Register(Register {
+                        width: Width::Word,
+                        value: reg,
+                    }),
+                },
+                size: offset + 1,
+            };
+        } else if bytes[offset] == 0b11110100 {
             return Self {
                 data: InstructionData::HLT,
                 size: 1,

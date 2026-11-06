@@ -25,6 +25,30 @@ add ax, 1000
 add al, -30
 add al, 9
 
+adc cx, [bp]
+adc dx, [bx + si]
+adc [bp + di + 5000], ah
+adc [bx], al
+adc sp, 392
+adc si, 5
+adc ax, 1000
+adc ah, 30
+adc al, 9
+adc cx, bx
+adc ch, al
+
+sbb cx, [bp]
+sbb dx, [bx + si]
+sbb [bp + di + 5000], ah
+sbb [bx], al
+sbb sp, 392
+sbb si, 5
+sbb ax, 1000
+sbb ah, 30
+sbb al, 9
+sbb cx, bx
+sbb ch, al
+
 sub bx, [bx+si]
 sub bx, [bp]
 sub si, 2
