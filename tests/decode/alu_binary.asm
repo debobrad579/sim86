@@ -1,29 +1,16 @@
 bits 16
 
-add bx, [bx+si]
-add bx, [bp]
-add si, 2
-add bp, 2
-add cx, 8
-add bx, [bp + 0]
-add cx, [bx + 2]
-add bh, [bp + si + 4]
-add di, [bp + di + 6]
-add [bx+si], bx
-add [bp], bx
-add [bp + 0], bx
-add [bx + 2], cx
-add [bp + si + 4], bh
-add [bp + di + 6], di
-add byte [bx], 34
-add word [bp + si + 1000], 29
-add ax, [bp]
-add al, [bx + si]
-add ax, bx
-add al, ah
+add cx, [bp]
+add dx, [bx + si]
+add [bp + di + 5000], ah
+add [bx], al
+add sp, 392
+add si, 5
 add ax, 1000
-add al, -30
+add ah, 30
 add al, 9
+add cx, bx
+add ch, al
 
 adc cx, [bp]
 adc dx, [bx + si]
@@ -37,6 +24,18 @@ adc al, 9
 adc cx, bx
 adc ch, al
 
+sub cx, [bp]
+sub dx, [bx + si]
+sub [bp + di + 5000], ah
+sub [bx], al
+sub sp, 392
+sub si, 5
+sub ax, 1000
+sub ah, 30
+sub al, 9
+sub cx, bx
+sub ch, al
+
 sbb cx, [bp]
 sbb dx, [bx + si]
 sbb [bp + di + 5000], ah
@@ -49,52 +48,55 @@ sbb al, 9
 sbb cx, bx
 sbb ch, al
 
-sub bx, [bx+si]
-sub bx, [bp]
-sub si, 2
-sub bp, 2
-sub cx, 8
-sub bx, [bp + 0]
-sub cx, [bx + 2]
-sub bh, [bp + si + 4]
-sub di, [bp + di + 6]
-sub [bx+si], bx
-sub [bp], bx
-sub [bp + 0], bx
-sub [bx + 2], cx
-sub [bp + si + 4], bh
-sub [bp + di + 6], di
-sub byte [bx], 34
-sub word [bx + di], 29
-sub ax, [bp]
-sub al, [bx + si]
-sub ax, bx
-sub al, ah
-sub ax, 1000
-sub al, -30
-sub al, 9
-
-cmp bx, [bx+si]
-cmp bx, [bp]
-cmp si, 2
-cmp bp, 2
-cmp cx, 8
-cmp bx, [bp + 0]
-cmp cx, [bx + 2]
-cmp bh, [bp + si + 4]
-cmp di, [bp + di + 6]
-cmp [bx+si], bx
-cmp [bp], bx
-cmp [bp + 0], bx
-cmp [bx + 2], cx
-cmp [bp + si + 4], bh
-cmp [bp + di + 6], di
+cmp bx, cx
+cmp dh, [bp + 390]
+cmp [bp + 2], si
+cmp bl, 20
 cmp byte [bx], 34
-cmp word [4834], 29
-cmp ax, [bp]
-cmp al, [bx + si]
-cmp ax, bx
-cmp al, ah
-cmp ax, 1000
-cmp al, -30
-cmp al, 9
+cmp ax, 23909
+
+and al, ah
+and ch, cl
+and bp, si
+and di, sp
+and al, 93
+and ax, 20392
+and [bp + si + 10], ch
+and [bx + di + 1000], dx
+and bx, [bp]
+and cx, [4384]
+and byte [bp - 39], 239
+and word [bx + si - 4332], 10328
+
+; test bx, cx
+; test dh, [bp + 390]
+; test [bp + 2], si
+; test bl, 20
+; test byte [bx], 34
+; test ax, 23909
+
+or al, ah
+or ch, cl
+or bp, si
+or di, sp
+or al, 93
+or ax, 20392
+or [bp + si + 10], ch
+or [bx + di + 1000], dx
+or bx, [bp]
+or cx, [4384]
+or byte [bp - 39], 239
+or word [bx + si - 4332], 10328
+
+xor al, ah
+xor ch, cl
+xor bp, si
+xor di, sp
+xor al, 93
+xor ax, 20392
+xor [bp + si + 10], ch
+xor [bx + di + 1000], dx
+xor bx, [bp]
+xor cx, [4384]
+xor byte [bp - 39], 239
+xor word [bx + si - 4332], 10328

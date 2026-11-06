@@ -1,6 +1,6 @@
 use crate::{
     sim::Sim86,
-    types::{AluBinaryOpCode, Operand, Width},
+    types::{AluBinaryOpCode, AluUnaryOpCode, Operand, Width},
 };
 
 struct AluFlags {
@@ -134,6 +134,64 @@ impl Sim86 {
             AluBinaryOpCode::SHL => todo!(),
         };
 
+        self.set_alu_flags(result, flags, width);
+
+        if write_result {
+            self.set_value(destination, result, &width);
+        }
+    }
+
+    pub(super) fn exec_alu_unary_instruction(
+        &mut self,
+        op_code: AluUnaryOpCode,
+        operand: Operand,
+        width: Width,
+    ) {
+        let a = self.get_value(&operand, &width);
+
+        match op_code {
+            AluUnaryOpCode::NOT => {
+                self.set_value(operand, !a, &width);
+            }
+            AluUnaryOpCode::INC => {
+                let (result, flags) = add(a, 1, false, width);
+                self.set_alu_flags(
+                    result,
+                    AluFlags {
+                        carry: None,
+                        auxiliary_carry: flags.auxiliary_carry,
+                        overflow: flags.overflow,
+                    },
+                    width,
+                );
+                self.set_value(operand, result, &width);
+            }
+            AluUnaryOpCode::DEC => {
+                let (result, flags) = sub(a, 1, false, width);
+                self.set_alu_flags(
+                    result,
+                    AluFlags {
+                        carry: None,
+                        auxiliary_carry: flags.auxiliary_carry,
+                        overflow: flags.overflow,
+                    },
+                    width,
+                );
+                self.set_value(operand, result, &width);
+            }
+            AluUnaryOpCode::NEG => {
+                let (result, flags) = sub(0, a, false, width);
+                self.set_alu_flags(result, flags, width);
+                self.set_value(operand, result, &width);
+            }
+            AluUnaryOpCode::MUL => todo!(),
+            AluUnaryOpCode::IMUL => todo!(),
+            AluUnaryOpCode::DIV => todo!(),
+            AluUnaryOpCode::IDIV => todo!(),
+        }
+    }
+
+    fn set_alu_flags(&mut self, result: u16, flags: AluFlags, width: Width) {
         self.set_zero_flag(result == 0);
         self.set_sign_flag(result & width.sign_bit() != 0);
         self.set_parity_flag((result & 0x00FF).count_ones().is_multiple_of(2));
@@ -146,10 +204,6 @@ impl Sim86 {
         }
         if let Some(overflow) = flags.overflow {
             self.set_overflow_flag(overflow);
-        }
-
-        if write_result {
-            self.set_value(destination, result, &width);
         }
     }
 }

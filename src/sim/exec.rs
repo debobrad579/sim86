@@ -21,7 +21,7 @@ impl Sim86 {
                 op_code,
                 width,
                 operand,
-            } => todo!(),
+            } => self.exec_alu_unary_instruction(op_code, operand, width),
             InstructionData::Jump { op_code, target } => {
                 self.exec_jump_instruction(op_code, target)
             }

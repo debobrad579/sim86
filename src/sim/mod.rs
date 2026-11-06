@@ -18,7 +18,7 @@ pub struct Sim86 {
 impl Sim86 {
     pub fn new(program: &[u8]) -> Self {
         let mut memory = [0; 1024 * 1024];
-        memory[..program.len()].copy_from_slice(&program);
+        memory[..program.len()].copy_from_slice(program);
 
         Self {
             memory,
