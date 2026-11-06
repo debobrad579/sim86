@@ -9,14 +9,10 @@ use crate::{
     },
 };
 
-pub fn reg_to_from_rm(
-    bytes: &[u8],
-    offset: usize,
-    segment_override: Option<SegmentRegister>,
-) -> Instruction {
-    let direction = Direction::from((bytes[offset] & 0b00000010) >> 1);
+pub fn reg_to_from_rm(bytes: &[u8], segment_override: Option<SegmentRegister>) -> Instruction {
+    let direction = Direction::from((bytes[0] & 0b00000010) >> 1);
 
-    let mod_rm = decode_modrm(bytes, ModRMType::Register, segment_override, offset);
+    let mod_rm = decode_modrm(bytes, ModRMType::Register, segment_override);
 
     match direction {
         Direction::RegToRM => Instruction {
@@ -38,12 +34,8 @@ pub fn reg_to_from_rm(
     }
 }
 
-pub fn immediate_to_rm(
-    bytes: &[u8],
-    offset: usize,
-    segment_override: Option<SegmentRegister>,
-) -> Instruction {
-    let mod_rm = decode_modrm(bytes, ModRMType::Immediate(false), segment_override, offset);
+pub fn immediate_to_rm(bytes: &[u8], segment_override: Option<SegmentRegister>) -> Instruction {
+    let mod_rm = decode_modrm(bytes, ModRMType::Immediate(false), segment_override);
 
     Instruction {
         data: InstructionData::MOV {
@@ -55,32 +47,31 @@ pub fn immediate_to_rm(
     }
 }
 
-pub fn immediate_to_register(bytes: &[u8], offset: usize) -> Instruction {
-    let width = Width::from((bytes[offset] & 0b00001000) >> 3);
-    let reg = bytes[offset] & 0b00000111;
+pub fn immediate_to_register(bytes: &[u8]) -> Instruction {
+    let width = Width::from((bytes[0] & 0b00001000) >> 3);
+    let reg = bytes[0] & 0b00000111;
 
     Instruction {
         data: InstructionData::MOV {
             width,
             destination: Operand::Register(Register { width, value: reg }),
             source: Operand::Immediate(Immediate::Unsigned(if width == Width::Byte {
-                bytes[offset + 1] as u16
+                bytes[1] as u16
             } else {
-                u16::from_le_bytes([bytes[offset + 1], bytes[offset + 2]])
+                u16::from_le_bytes([bytes[1], bytes[2]])
             })),
         },
-        size: if width == Width::Word { 3 } else { 2 } + offset,
+        size: if width == Width::Word { 3 } else { 2 },
     }
 }
 
 pub fn memory_to_from_accumulator(
     bytes: &[u8],
-    offset: usize,
     segment_override: Option<SegmentRegister>,
 ) -> Instruction {
-    let direction = Direction::from((bytes[offset] & 0b00000010) >> 1);
-    let width = Width::from(bytes[offset] & 0b00000001);
-    let addr = u16::from_le_bytes([bytes[offset + 1], bytes[offset + 2]]);
+    let direction = Direction::from((bytes[0] & 0b00000010) >> 1);
+    let width = Width::from(bytes[0] & 0b00000001);
+    let addr = u16::from_le_bytes([bytes[1], bytes[2]]);
 
     let memory = Operand::Memory(Memory {
         address: EAC::DirectAccess(addr),
@@ -95,7 +86,7 @@ pub fn memory_to_from_accumulator(
                 destination: register,
                 source: memory,
             },
-            size: 3 + offset,
+            size: 3,
         },
         Direction::RMToReg => Instruction {
             data: InstructionData::MOV {
@@ -103,19 +94,15 @@ pub fn memory_to_from_accumulator(
                 destination: memory,
                 source: register,
             },
-            size: 3 + offset,
+            size: 3,
         },
     }
 }
 
-pub fn sr_to_from_rm(
-    bytes: &[u8],
-    offset: usize,
-    segment_override: Option<SegmentRegister>,
-) -> Instruction {
-    let direction = Direction::from((bytes[offset] & 0b00000010) >> 1);
+pub fn sr_to_from_rm(bytes: &[u8], segment_override: Option<SegmentRegister>) -> Instruction {
+    let direction = Direction::from((bytes[0] & 0b00000010) >> 1);
 
-    let mod_rm = decode_modrm(bytes, ModRMType::SegmentRegister, segment_override, offset);
+    let mod_rm = decode_modrm(bytes, ModRMType::SegmentRegister, segment_override);
 
     match direction {
         Direction::RegToRM => Instruction {

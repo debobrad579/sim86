@@ -17,26 +17,22 @@ pub fn decode_modrm(
     bytes: &[u8],
     operand_type: ModRMType,
     segment_override: Option<SegmentRegister>,
-    prefix_offset: usize,
 ) -> ModRM {
     let width = if let ModRMType::SegmentRegister = operand_type {
         Width::from(1)
     } else {
-        Width::from(bytes[prefix_offset] & 0b00000001)
+        Width::from(bytes[0] & 0b00000001)
     };
 
-    let mode = bytes[prefix_offset + 1] >> 6;
-    let rm = bytes[prefix_offset + 1] & 0b00000111;
+    let mode = bytes[1] >> 6;
+    let rm = bytes[1] & 0b00000111;
 
     let (rm_value, displacement_size): (Operand, usize) = match mode {
         0b00 => {
             if rm == 0b110 {
                 (
                     Operand::Memory(Memory {
-                        address: EAC::DirectAccess(u16::from_le_bytes([
-                            bytes[prefix_offset + 2],
-                            bytes[prefix_offset + 3],
-                        ])),
+                        address: EAC::DirectAccess(u16::from_le_bytes([bytes[2], bytes[3]])),
                         segment_override,
                     }),
                     2,
@@ -53,10 +49,7 @@ pub fn decode_modrm(
         }
         0b01 => (
             Operand::Memory(Memory {
-                address: get_effective_address_expression(
-                    rm,
-                    bytes[prefix_offset + 2] as i8 as i16,
-                ),
+                address: get_effective_address_expression(rm, bytes[2] as i8 as i16),
                 segment_override,
             }),
             1,
@@ -65,7 +58,7 @@ pub fn decode_modrm(
             Operand::Memory(Memory {
                 address: get_effective_address_expression(
                     rm,
-                    u16::from_le_bytes([bytes[prefix_offset + 2], bytes[prefix_offset + 3]]) as i16,
+                    u16::from_le_bytes([bytes[2], bytes[3]]) as i16,
                 ),
                 segment_override,
             }),
@@ -80,10 +73,10 @@ pub fn decode_modrm(
             rm: rm_value,
             reg: Operand::Register(Register {
                 width,
-                value: (bytes[prefix_offset + 1] & 0b00111000) >> 3,
+                value: (bytes[1] & 0b00111000) >> 3,
             }),
             width,
-            size: prefix_offset + displacement_size + 2,
+            size: displacement_size + 2,
         },
         ModRMType::Immediate(sign_extend) => {
             let immediate_size = if sign_extend {
@@ -98,11 +91,8 @@ pub fn decode_modrm(
             let offset = 2 + displacement_size;
 
             let raw_value = match immediate_size {
-                1 => bytes[prefix_offset + offset] as u16,
-                2 => u16::from_le_bytes([
-                    bytes[prefix_offset + offset],
-                    bytes[prefix_offset + offset + 1],
-                ]),
+                1 => bytes[offset] as u16,
+                2 => u16::from_le_bytes([bytes[offset], bytes[offset + 1]]),
                 _ => unreachable!(),
             };
 
@@ -116,14 +106,14 @@ pub fn decode_modrm(
                 rm: rm_value,
                 reg: immediate,
                 width,
-                size: prefix_offset + offset + immediate_size,
+                size: offset + immediate_size,
             }
         }
         ModRMType::SegmentRegister => ModRM {
             rm: rm_value,
             reg: Operand::SegmentRegistry(SegmentRegister::from((bytes[1] & 0b00011000) >> 3)),
             width,
-            size: prefix_offset + displacement_size + 2,
+            size: displacement_size + 2,
         },
     };
 }
