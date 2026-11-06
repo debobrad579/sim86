@@ -1,4 +1,4 @@
-use crate::sim::Sim86;
+use crate::{sim::Sim86, types::Width};
 
 macro_rules! set_bit {
     ($x:expr, $bit:expr, $value:expr) => {
@@ -78,4 +78,26 @@ impl Sim86 {
     pub(super) fn set_overflow_flag(&mut self, value: bool) {
         set_bit!(self.flags, 11, value)
     }
+
+    pub(super) fn set_alu_flags(&mut self, result: u16, flags: AdditionalFlags, width: Width) {
+        self.set_zero_flag(result == 0);
+        self.set_sign_flag(result & width.sign_bit() != 0);
+        self.set_parity_flag((result & 0x00FF).count_ones().is_multiple_of(2));
+
+        if let Some(carry) = flags.carry {
+            self.set_carry_flag(carry);
+        }
+        if let Some(auxiliary_carry) = flags.auxiliary_carry {
+            self.set_auxiliary_carry_flag(auxiliary_carry);
+        }
+        if let Some(overflow) = flags.overflow {
+            self.set_overflow_flag(overflow);
+        }
+    }
+}
+
+pub struct AdditionalFlags {
+    pub carry: Option<bool>,
+    pub auxiliary_carry: Option<bool>,
+    pub overflow: Option<bool>,
 }

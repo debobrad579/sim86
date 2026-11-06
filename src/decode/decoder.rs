@@ -26,6 +26,7 @@ impl From<&[u8]> for Instruction {
             0xC6 | 0xC7 => mov::immediate_to_rm(bytes, segment_override),
             0xB0..=0xBF => mov::immediate_to_register(bytes),
             0xA0..=0xA3 => mov::memory_to_from_accumulator(bytes, segment_override),
+            0x8D => misc::load_effective_address(bytes),
             0x80..=0x83 => alu::immediate_to_rm(bytes, segment_override, None),
             0x84 | 0x85 => {
                 alu::rm_with_reg_to_either(bytes, segment_override, Some(AluBinaryOpCode::TEST))

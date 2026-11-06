@@ -45,6 +45,10 @@ pub enum InstructionData {
         destination: Operand,
         source: Operand,
     },
+    LEA {
+        operand: Operand,
+        eac: EffectiveAddressCalculation,
+    },
     AluBinary {
         op_code: AluBinaryOpCode,
         width: Width,
@@ -89,6 +93,7 @@ impl Display for Instruction {
 
                 write!(f, "MOV{}{},{}", size, destination, source)
             }
+            InstructionData::LEA { operand, eac } => write!(f, "LEA {},[{}]", operand, eac),
             InstructionData::AluBinary {
                 op_code,
                 width,
@@ -223,7 +228,7 @@ impl Display for SegmentRegister {
 }
 
 pub struct Memory {
-    pub address: EAC,
+    pub address: EffectiveAddressCalculation,
     pub segment_override: Option<SegmentRegister>,
 }
 
@@ -236,7 +241,7 @@ impl Display for Memory {
     }
 }
 
-pub enum EAC {
+pub enum EffectiveAddressCalculation {
     Calculation {
         base: Register,
         index: Option<Register>,
@@ -245,10 +250,10 @@ pub enum EAC {
     DirectAccess(u16),
 }
 
-impl Display for EAC {
+impl Display for EffectiveAddressCalculation {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            EAC::Calculation {
+            EffectiveAddressCalculation::Calculation {
                 base,
                 index,
                 displacement,
@@ -256,7 +261,7 @@ impl Display for EAC {
                 Some(index) => write!(f, "{}+{}{:+}", base, index, displacement),
                 None => write!(f, "{}{:+}", base, displacement),
             },
-            EAC::DirectAccess(address) => write!(f, "{}", address),
+            EffectiveAddressCalculation::DirectAccess(address) => write!(f, "{}", address),
         }
     }
 }

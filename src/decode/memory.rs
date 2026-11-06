@@ -1,4 +1,6 @@
-use crate::types::{EAC, Immediate, Memory, Operand, Register, SegmentRegister, Width};
+use crate::types::{
+    EffectiveAddressCalculation, Immediate, Memory, Operand, Register, SegmentRegister, Width,
+};
 
 pub struct ModRM {
     pub reg: Operand,
@@ -32,7 +34,9 @@ pub fn decode_modrm(
             if rm == 0b110 {
                 (
                     Operand::Memory(Memory {
-                        address: EAC::DirectAccess(u16::from_le_bytes([bytes[2], bytes[3]])),
+                        address: EffectiveAddressCalculation::DirectAccess(u16::from_le_bytes([
+                            bytes[2], bytes[3],
+                        ])),
                         segment_override,
                     }),
                     2,
@@ -118,9 +122,9 @@ pub fn decode_modrm(
     };
 }
 
-fn get_effective_address_expression(rm: u8, displacement: i16) -> EAC {
+fn get_effective_address_expression(rm: u8, displacement: i16) -> EffectiveAddressCalculation {
     match rm {
-        0b000 => EAC::Calculation {
+        0b000 => EffectiveAddressCalculation::Calculation {
             base: Register {
                 width: Width::Word,
                 value: 0b011,
@@ -131,7 +135,7 @@ fn get_effective_address_expression(rm: u8, displacement: i16) -> EAC {
             }),
             displacement,
         },
-        0b001 => EAC::Calculation {
+        0b001 => EffectiveAddressCalculation::Calculation {
             base: Register {
                 width: Width::Word,
                 value: 0b011,
@@ -142,7 +146,7 @@ fn get_effective_address_expression(rm: u8, displacement: i16) -> EAC {
             }),
             displacement,
         },
-        0b010 => EAC::Calculation {
+        0b010 => EffectiveAddressCalculation::Calculation {
             base: Register {
                 width: Width::Word,
                 value: 0b101,
@@ -153,7 +157,7 @@ fn get_effective_address_expression(rm: u8, displacement: i16) -> EAC {
             }),
             displacement,
         },
-        0b011 => EAC::Calculation {
+        0b011 => EffectiveAddressCalculation::Calculation {
             base: Register {
                 width: Width::Word,
                 value: 0b101,
@@ -164,7 +168,7 @@ fn get_effective_address_expression(rm: u8, displacement: i16) -> EAC {
             }),
             displacement,
         },
-        0b100 => EAC::Calculation {
+        0b100 => EffectiveAddressCalculation::Calculation {
             base: Register {
                 width: Width::Word,
                 value: 0b110,
@@ -172,7 +176,7 @@ fn get_effective_address_expression(rm: u8, displacement: i16) -> EAC {
             index: None,
             displacement,
         },
-        0b101 => EAC::Calculation {
+        0b101 => EffectiveAddressCalculation::Calculation {
             base: Register {
                 width: Width::Word,
                 value: 0b111,
@@ -180,7 +184,7 @@ fn get_effective_address_expression(rm: u8, displacement: i16) -> EAC {
             index: None,
             displacement,
         },
-        0b110 => EAC::Calculation {
+        0b110 => EffectiveAddressCalculation::Calculation {
             base: Register {
                 width: Width::Word,
                 value: 0b101,
@@ -188,7 +192,7 @@ fn get_effective_address_expression(rm: u8, displacement: i16) -> EAC {
             index: None,
             displacement,
         },
-        0b111 => EAC::Calculation {
+        0b111 => EffectiveAddressCalculation::Calculation {
             base: Register {
                 width: Width::Word,
                 value: 0b011,

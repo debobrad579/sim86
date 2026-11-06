@@ -6,6 +6,7 @@ pub mod flags;
 pub mod get_set;
 pub mod jump;
 pub mod run;
+pub mod shift_rotate;
 
 pub struct Sim86 {
     memory: [u8; 1024 * 1024],

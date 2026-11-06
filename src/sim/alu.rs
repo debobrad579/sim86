@@ -1,15 +1,9 @@
 use crate::{
-    sim::Sim86,
+    sim::{Sim86, flags::AdditionalFlags},
     types::{AluBinaryOpCode, AluUnaryOpCode, Operand, Width},
 };
 
-struct AluFlags {
-    pub carry: Option<bool>,
-    pub auxiliary_carry: Option<bool>,
-    pub overflow: Option<bool>,
-}
-
-fn add(a: u16, b: u16, carry_in: bool, width: Width) -> (u16, AluFlags) {
+fn add(a: u16, b: u16, carry_in: bool, width: Width) -> (u16, AdditionalFlags) {
     let mask = width.mask();
     let a = a & mask;
     let b = b & mask;
@@ -20,7 +14,7 @@ fn add(a: u16, b: u16, carry_in: bool, width: Width) -> (u16, AluFlags) {
 
     (
         result,
-        AluFlags {
+        AdditionalFlags {
             carry: Some(wide > u32::from(mask)),
             auxiliary_carry: Some(((a & 0x0F) + (b & 0x0F) + carry_in) > 0x0F),
             overflow: Some((!(a ^ b) & (a ^ result) & width.sign_bit()) != 0),
@@ -28,7 +22,7 @@ fn add(a: u16, b: u16, carry_in: bool, width: Width) -> (u16, AluFlags) {
     )
 }
 
-fn sub(a: u16, b: u16, borrow_in: bool, width: Width) -> (u16, AluFlags) {
+fn sub(a: u16, b: u16, borrow_in: bool, width: Width) -> (u16, AdditionalFlags) {
     let mask = width.mask();
     let a = a & mask;
     let b = b & mask;
@@ -38,7 +32,7 @@ fn sub(a: u16, b: u16, borrow_in: bool, width: Width) -> (u16, AluFlags) {
 
     (
         result,
-        AluFlags {
+        AdditionalFlags {
             carry: Some(u32::from(a) < u32::from(b) + u32::from(borrow_in)),
             auxiliary_carry: Some((a & 0x0F) < (b & 0x0F) + borrow_in),
             overflow: Some(((a ^ b) & (a ^ result) & width.sign_bit()) != 0),
@@ -46,10 +40,10 @@ fn sub(a: u16, b: u16, borrow_in: bool, width: Width) -> (u16, AluFlags) {
     )
 }
 
-fn and(a: u16, b: u16) -> (u16, AluFlags) {
+fn and(a: u16, b: u16) -> (u16, AdditionalFlags) {
     (
         a & b,
-        AluFlags {
+        AdditionalFlags {
             carry: Some(false),
             auxiliary_carry: None,
             overflow: Some(false),
@@ -57,10 +51,10 @@ fn and(a: u16, b: u16) -> (u16, AluFlags) {
     )
 }
 
-fn or(a: u16, b: u16) -> (u16, AluFlags) {
+fn or(a: u16, b: u16) -> (u16, AdditionalFlags) {
     (
         a | b,
-        AluFlags {
+        AdditionalFlags {
             carry: Some(false),
             auxiliary_carry: None,
             overflow: Some(false),
@@ -68,10 +62,10 @@ fn or(a: u16, b: u16) -> (u16, AluFlags) {
     )
 }
 
-fn xor(a: u16, b: u16) -> (u16, AluFlags) {
+fn xor(a: u16, b: u16) -> (u16, AdditionalFlags) {
     (
         a ^ b,
-        AluFlags {
+        AdditionalFlags {
             carry: Some(false),
             auxiliary_carry: None,
             overflow: Some(false),
@@ -154,7 +148,7 @@ impl Sim86 {
                 let (result, flags) = add(a, 1, false, width);
                 self.set_alu_flags(
                     result,
-                    AluFlags {
+                    AdditionalFlags {
                         carry: None,
                         auxiliary_carry: flags.auxiliary_carry,
                         overflow: flags.overflow,
@@ -167,7 +161,7 @@ impl Sim86 {
                 let (result, flags) = sub(a, 1, false, width);
                 self.set_alu_flags(
                     result,
-                    AluFlags {
+                    AdditionalFlags {
                         carry: None,
                         auxiliary_carry: flags.auxiliary_carry,
                         overflow: flags.overflow,
@@ -185,22 +179,6 @@ impl Sim86 {
             AluUnaryOpCode::IMUL => todo!(),
             AluUnaryOpCode::DIV => todo!(),
             AluUnaryOpCode::IDIV => todo!(),
-        }
-    }
-
-    fn set_alu_flags(&mut self, result: u16, flags: AluFlags, width: Width) {
-        self.set_zero_flag(result == 0);
-        self.set_sign_flag(result & width.sign_bit() != 0);
-        self.set_parity_flag((result & 0x00FF).count_ones().is_multiple_of(2));
-
-        if let Some(carry) = flags.carry {
-            self.set_carry_flag(carry);
-        }
-        if let Some(auxiliary_carry) = flags.auxiliary_carry {
-            self.set_auxiliary_carry_flag(auxiliary_carry);
-        }
-        if let Some(overflow) = flags.overflow {
-            self.set_overflow_flag(overflow);
         }
     }
 }

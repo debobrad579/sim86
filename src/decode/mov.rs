@@ -4,8 +4,8 @@ use crate::{
         memory::{ModRMType, decode_modrm},
     },
     types::{
-        EAC, Immediate, Instruction, InstructionData, Memory, Operand, Register, SegmentRegister,
-        Width,
+        EffectiveAddressCalculation, Immediate, Instruction, InstructionData, Memory, Operand,
+        Register, SegmentRegister, Width,
     },
 };
 
@@ -74,7 +74,7 @@ pub fn memory_to_from_accumulator(
     let addr = u16::from_le_bytes([bytes[1], bytes[2]]);
 
     let memory = Operand::Memory(Memory {
-        address: EAC::DirectAccess(addr),
+        address: EffectiveAddressCalculation::DirectAccess(addr),
         segment_override,
     });
     let register = Operand::Register(Register { width, value: 0 });

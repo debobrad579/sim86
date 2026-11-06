@@ -1,6 +1,6 @@
 use crate::{
     sim::Sim86,
-    types::{EAC, Immediate, Memory, Operand, Register, Width},
+    types::{EffectiveAddressCalculation, Immediate, Memory, Operand, Register, Width},
 };
 
 impl Sim86 {
@@ -43,24 +43,11 @@ impl Sim86 {
         }
     }
 
-    pub(super) fn get_memory_address(&self, memory: &Memory) -> usize {
-        let sr_value = self.segment_registers[match &memory.segment_override {
-            Some(segment_prefix) => segment_prefix.value(),
-            None => {
-                if let EAC::Calculation { ref base, .. } = memory.address
-                    && base.value == 0b101
-                {
-                    0b10
-                } else {
-                    0b11
-                }
-            }
-        } as usize] as usize;
-
-        let effective_address = match memory.address {
-            EAC::Calculation {
-                ref base,
-                ref index,
+    pub(super) fn get_effective_address(&self, eac: &EffectiveAddressCalculation) -> u16 {
+        match eac {
+            EffectiveAddressCalculation::Calculation {
+                base,
+                index,
                 displacement,
             } => {
                 let index_value = index
@@ -70,13 +57,27 @@ impl Sim86 {
 
                 (self.get_register(base))
                     .wrapping_add(index_value)
-                    .wrapping_add(displacement as u16) as usize
+                    .wrapping_add(*displacement as u16)
             }
+            EffectiveAddressCalculation::DirectAccess(address) => *address,
+        }
+    }
 
-            EAC::DirectAccess(address) => address as usize,
-        };
+    pub(super) fn get_memory_address(&self, memory: &Memory) -> usize {
+        let sr_value = self.segment_registers[match &memory.segment_override {
+            Some(segment_prefix) => segment_prefix.value(),
+            None => {
+                if let EffectiveAddressCalculation::Calculation { ref base, .. } = memory.address
+                    && base.value == 0b101
+                {
+                    0b10
+                } else {
+                    0b11
+                }
+            }
+        } as usize] as usize;
 
-        (sr_value << 4) + effective_address
+        (sr_value << 4) + self.get_effective_address(&memory.address) as usize
     }
 
     pub(super) fn get_register(&self, register: &Register) -> u16 {

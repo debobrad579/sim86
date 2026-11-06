@@ -1,6 +1,6 @@
 use crate::{
     sim::Sim86,
-    types::{Instruction, InstructionData},
+    types::{Instruction, InstructionData, Width},
 };
 
 impl Sim86 {
@@ -11,6 +11,9 @@ impl Sim86 {
                 source,
                 width,
             } => self.set_value(destination, self.get_value(&source, &width), &width),
+            InstructionData::LEA { operand, eac } => {
+                self.set_value(operand, self.get_effective_address(&eac), &Width::Word)
+            }
             InstructionData::AluBinary {
                 op_code,
                 destination,
@@ -24,10 +27,10 @@ impl Sim86 {
             } => self.exec_alu_unary_instruction(op_code, operand, width),
             InstructionData::ShiftRotate {
                 op_code,
-                width,
                 operand,
                 amount,
-            } => todo!(),
+                width,
+            } => self.exec_shift_rotate_instruction(op_code, operand, amount, width),
             InstructionData::Jump { op_code, target } => {
                 self.exec_jump_instruction(op_code, target)
             }
