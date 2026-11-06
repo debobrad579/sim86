@@ -1,8 +1,10 @@
 use std::fmt::Debug;
 
+pub mod alu;
 pub mod exec;
 pub mod flags;
 pub mod get_set;
+pub mod jump;
 pub mod run;
 
 pub struct Sim86 {

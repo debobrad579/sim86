@@ -6,6 +6,24 @@ pub enum Width {
     Word,
 }
 
+impl Width {
+    #[inline]
+    pub fn mask(self) -> u16 {
+        match self {
+            Width::Byte => 0x00FF,
+            Width::Word => 0xFFFF,
+        }
+    }
+
+    #[inline]
+    pub fn sign_bit(self) -> u16 {
+        match self {
+            Width::Byte => 0x0080,
+            Width::Word => 0x8000,
+        }
+    }
+}
+
 impl From<u8> for Width {
     fn from(value: u8) -> Self {
         match value {
@@ -225,6 +243,16 @@ pub enum ALUOpCode {
     AND,
     OR,
     XOR,
+    TEST,
+    SHR,
+    SAR,
+    SHL,
+    MUL,
+    IMUL,
+    DIV,
+    IDIV,
+    INC,
+    DEC,
 }
 
 impl Display for ALUOpCode {

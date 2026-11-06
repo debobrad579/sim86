@@ -1,6 +1,6 @@
 use crate::{
     sim::Sim86,
-    types::{ALUOpCode, Instruction, InstructionData, JumpOpCode},
+    types::{Instruction, InstructionData},
 };
 
 impl Sim86 {
@@ -16,79 +16,9 @@ impl Sim86 {
                 destination,
                 source,
                 width,
-            } => match op_code {
-                ALUOpCode::ADD => {
-                    let (a, b) = (
-                        self.get_value(&destination, &width),
-                        self.get_value(&source, &width),
-                    );
-                    let (result, carry) = a.overflowing_add(b);
-                    let auxiliary_carry = ((a & 0x0F) + (b & 0x0F)) > 0x0F;
-                    let overflow = (!(a ^ b) & (a ^ result) & 0x8000) != 0;
-                    self.update_alu_flags(result, carry, auxiliary_carry, overflow);
-                    self.set_value(destination, result, &width);
-                }
-                ALUOpCode::SUB => {
-                    let (a, b) = (
-                        self.get_value(&destination, &width),
-                        self.get_value(&source, &width),
-                    );
-                    let (result, carry) = a.overflowing_sub(b);
-                    let auxiliary_carry = (a & 0x0F) < (b & 0x0F);
-                    let overflow = ((a ^ b) & (a ^ result) & 0x8000) != 0;
-                    self.update_alu_flags(result, carry, auxiliary_carry, overflow);
-                    self.set_value(destination, result, &width);
-                }
-                ALUOpCode::CMP => {
-                    let (a, b) = (
-                        self.get_value(&destination, &width),
-                        self.get_value(&source, &width),
-                    );
-                    let (result, carry) = a.overflowing_sub(b);
-                    let auxiliary_carry = (a & 0x0F) < (b & 0x0F);
-                    let overflow = ((a ^ b) & (a ^ result) & 0x8000) != 0;
-                    self.update_alu_flags(result, carry, auxiliary_carry, overflow);
-                }
-                _ => unimplemented!(),
-            },
+            } => self.exec_alu_instruction(op_code, destination, source, width),
             InstructionData::Jump { op_code, target } => {
-                if match op_code {
-                    JumpOpCode::JO => self.get_overflow_flag(),
-                    JumpOpCode::JNO => !self.get_overflow_flag(),
-                    JumpOpCode::JB => self.get_carry_flag(),
-                    JumpOpCode::JNB => !self.get_carry_flag(),
-                    JumpOpCode::JE => self.get_zero_flag(),
-                    JumpOpCode::JNE => !self.get_zero_flag(),
-                    JumpOpCode::JBE => self.get_carry_flag() || self.get_zero_flag(),
-                    JumpOpCode::JNBE => !(self.get_carry_flag() || self.get_zero_flag()),
-                    JumpOpCode::JS => self.get_sign_flag(),
-                    JumpOpCode::JNS => !self.get_sign_flag(),
-                    JumpOpCode::JP => self.get_parity_flag(),
-                    JumpOpCode::JNP => !self.get_parity_flag(),
-                    JumpOpCode::JL => self.get_sign_flag() != self.get_overflow_flag(),
-                    JumpOpCode::JNL => self.get_sign_flag() == self.get_overflow_flag(),
-                    JumpOpCode::JLE => {
-                        self.get_sign_flag() != self.get_overflow_flag() || self.get_zero_flag()
-                    }
-                    JumpOpCode::JNLE => {
-                        self.get_sign_flag() == self.get_overflow_flag() && !self.get_zero_flag()
-                    }
-                    JumpOpCode::LOOPNZ => {
-                        self.registers[1] -= 1;
-                        self.registers[1] != 0 && !self.get_zero_flag()
-                    }
-                    JumpOpCode::LOOPZ => {
-                        self.registers[1] -= 1;
-                        self.registers[1] != 0 && self.get_zero_flag()
-                    }
-                    JumpOpCode::LOOP => {
-                        self.registers[1] -= 1;
-                        self.registers[1] != 0
-                    }
-                    JumpOpCode::JCXZ => self.registers[1] == 0,
-                } {
-                    self.update_ip(target - 2)
-                }
+                self.exec_jump_instruction(op_code, target)
             }
             InstructionData::HLT => unreachable!(),
         }
