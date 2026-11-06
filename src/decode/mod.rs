@@ -31,11 +31,11 @@ impl From<u8> for Direction {
 impl From<&[u8]> for Instruction {
     fn from(bytes: &[u8]) -> Self {
         let mut offset = 0;
-        let mut segment_prefix: Option<SegmentRegister> = None;
+        let mut segment_override: Option<SegmentRegister> = None;
 
         loop {
             if bytes[offset] >> 5 == 0b001 && bytes[offset] & 0b00000111 == 0b110 {
-                segment_prefix = Some(SegmentRegister::from((bytes[offset] & 0b00011000) >> 3));
+                segment_override = Some(SegmentRegister::from((bytes[offset] & 0b00011000) >> 3));
             } else {
                 break;
             }
@@ -46,7 +46,7 @@ impl From<&[u8]> for Instruction {
         if bytes[offset] >> 2 == 0b100010 {
             let direction = Direction::from((bytes[offset] & 0b00000010) >> 1);
 
-            let mod_rm = decode_modrm(bytes, ModRMType::Register, segment_prefix, offset);
+            let mod_rm = decode_modrm(bytes, ModRMType::Register, segment_override, offset);
 
             return match direction {
                 Direction::RegToRM => Self {
@@ -67,7 +67,7 @@ impl From<&[u8]> for Instruction {
                 },
             };
         } else if bytes[offset] >> 1 == 0b1100011 {
-            let mod_rm = decode_modrm(bytes, ModRMType::Immediate(false), segment_prefix, offset);
+            let mod_rm = decode_modrm(bytes, ModRMType::Immediate(false), segment_override, offset);
 
             return Self {
                 data: InstructionData::MOV {
@@ -100,7 +100,7 @@ impl From<&[u8]> for Instruction {
 
             let memory = Operand::Memory(Memory {
                 address: EAC::DirectAccess(addr),
-                segment_prefix,
+                segment_override,
             });
             let register = Operand::Register(Register { width, value: 0 });
 
@@ -125,7 +125,7 @@ impl From<&[u8]> for Instruction {
         } else if bytes[offset] >> 2 == 0b100011 {
             let direction = Direction::from((bytes[offset] & 0b00000010) >> 1);
 
-            let mod_rm = decode_modrm(bytes, ModRMType::SegmentRegister, segment_prefix, offset);
+            let mod_rm = decode_modrm(bytes, ModRMType::SegmentRegister, segment_override, offset);
 
             return match direction {
                 Direction::RegToRM => Self {
@@ -150,7 +150,7 @@ impl From<&[u8]> for Instruction {
             let literal = (bytes[offset] & 0b00111000) >> 3;
 
             let op_code = get_alu_op_code(literal);
-            let mod_rm = decode_modrm(bytes, ModRMType::Register, segment_prefix, offset);
+            let mod_rm = decode_modrm(bytes, ModRMType::Register, segment_override, offset);
 
             return match direction {
                 Direction::RegToRM => Self {
@@ -180,7 +180,7 @@ impl From<&[u8]> for Instruction {
             let mod_rm = decode_modrm(
                 bytes,
                 ModRMType::Immediate(sign_extend),
-                segment_prefix,
+                segment_override,
                 offset,
             );
 
@@ -225,7 +225,12 @@ impl From<&[u8]> for Instruction {
                     op_code,
                     target: bytes[offset + 1] as i8 + 2,
                 },
-                size: 2 + offset,
+                size: 2,
+            };
+        } else if bytes[0] == 0b11110100 {
+            return Self {
+                data: InstructionData::HLT,
+                size: 1,
             };
         }
 

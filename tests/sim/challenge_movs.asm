@@ -25,3 +25,5 @@ mov sp, ss
 mov bp, ds
 mov si, es
 mov di, dx
+
+hlt

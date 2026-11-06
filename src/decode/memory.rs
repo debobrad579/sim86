@@ -16,7 +16,7 @@ pub enum ModRMType {
 pub fn decode_modrm(
     bytes: &[u8],
     operand_type: ModRMType,
-    segment_prefix: Option<SegmentRegister>,
+    segment_override: Option<SegmentRegister>,
     prefix_offset: usize,
 ) -> ModRM {
     let width = if let ModRMType::SegmentRegister = operand_type {
@@ -37,7 +37,7 @@ pub fn decode_modrm(
                             bytes[prefix_offset + 2],
                             bytes[prefix_offset + 3],
                         ])),
-                        segment_prefix,
+                        segment_override,
                     }),
                     2,
                 )
@@ -45,7 +45,7 @@ pub fn decode_modrm(
                 (
                     Operand::Memory(Memory {
                         address: get_effective_address_expression(rm, 0),
-                        segment_prefix,
+                        segment_override,
                     }),
                     0,
                 )
@@ -57,7 +57,7 @@ pub fn decode_modrm(
                     rm,
                     bytes[prefix_offset + 2] as i8 as i16,
                 ),
-                segment_prefix,
+                segment_override,
             }),
             1,
         ),
@@ -67,7 +67,7 @@ pub fn decode_modrm(
                     rm,
                     u16::from_le_bytes([bytes[prefix_offset + 2], bytes[prefix_offset + 3]]) as i16,
                 ),
-                segment_prefix,
+                segment_override,
             }),
             2,
         ),

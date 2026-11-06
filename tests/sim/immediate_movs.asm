@@ -9,3 +9,5 @@ mov sp, 5
 mov bp, 6
 mov si, 7
 mov di, 8
+
+hlt

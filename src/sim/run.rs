@@ -1,16 +1,24 @@
-use crate::{sim::Sim86, types::Instruction};
+use std::fs::File;
+use std::io::Write;
+
+use crate::{
+    sim::Sim86,
+    types::{Instruction, InstructionData},
+};
 
 impl Sim86 {
     pub fn run(&mut self, print: bool) {
-        let len = self.program.len();
-
-        while self.ip < len {
-            let instruction = Instruction::from(&self.program[self.ip..]);
+        loop {
+            let instruction = Instruction::from(&self.memory[self.ip..]);
 
             self.ip += instruction.size;
 
             if print {
                 println!("\n{}", instruction);
+            }
+
+            if let InstructionData::HLT = instruction.data {
+                break;
             }
 
             self.execute_instruction(instruction);
@@ -19,6 +27,9 @@ impl Sim86 {
                 println!("{:?}", self);
             }
         }
+
+        let mut file = File::create("memory.data").unwrap();
+        file.write_all(&self.memory).unwrap();
     }
 
     pub(super) fn update_ip(&mut self, offset: i8) {

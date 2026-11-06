@@ -9,32 +9,41 @@ impl Sim86 {
             InstructionData::MOV {
                 destination,
                 source,
-                ..
-            } => self.set_value(destination, self.get_value(&source)),
+                width,
+            } => self.set_value(destination, self.get_value(&source, &width), &width),
             InstructionData::ALU {
                 op_code,
                 destination,
                 source,
-                ..
+                width,
             } => match op_code {
                 ALUOpCode::ADD => {
-                    let (a, b) = (self.get_value(&destination), self.get_value(&source));
+                    let (a, b) = (
+                        self.get_value(&destination, &width),
+                        self.get_value(&source, &width),
+                    );
                     let (result, carry) = a.overflowing_add(b);
                     let auxiliary_carry = ((a & 0x0F) + (b & 0x0F)) > 0x0F;
                     let overflow = (!(a ^ b) & (a ^ result) & 0x8000) != 0;
                     self.update_alu_flags(result, carry, auxiliary_carry, overflow);
-                    self.set_value(destination, result);
+                    self.set_value(destination, result, &width);
                 }
                 ALUOpCode::SUB => {
-                    let (a, b) = (self.get_value(&destination), self.get_value(&source));
+                    let (a, b) = (
+                        self.get_value(&destination, &width),
+                        self.get_value(&source, &width),
+                    );
                     let (result, carry) = a.overflowing_sub(b);
                     let auxiliary_carry = (a & 0x0F) < (b & 0x0F);
                     let overflow = ((a ^ b) & (a ^ result) & 0x8000) != 0;
                     self.update_alu_flags(result, carry, auxiliary_carry, overflow);
-                    self.set_value(destination, result);
+                    self.set_value(destination, result, &width);
                 }
                 ALUOpCode::CMP => {
-                    let (a, b) = (self.get_value(&destination), self.get_value(&source));
+                    let (a, b) = (
+                        self.get_value(&destination, &width),
+                        self.get_value(&source, &width),
+                    );
                     let (result, carry) = a.overflowing_sub(b);
                     let auxiliary_carry = (a & 0x0F) < (b & 0x0F);
                     let overflow = ((a ^ b) & (a ^ result) & 0x8000) != 0;
@@ -81,6 +90,7 @@ impl Sim86 {
                     self.update_ip(target - 2)
                 }
             }
+            InstructionData::HLT => unreachable!(),
         }
     }
 }

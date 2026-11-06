@@ -6,8 +6,7 @@ pub mod get_set;
 pub mod run;
 
 pub struct Sim86 {
-    program: Box<[u8]>,
-    _memory: [u8; 1024 * 1024],
+    memory: [u8; 1024 * 1024],
     registers: [u16; 8],
     segment_registers: [u16; 4],
     ip: usize,
@@ -15,10 +14,12 @@ pub struct Sim86 {
 }
 
 impl Sim86 {
-    pub fn new(program: Box<[u8]>) -> Self {
+    pub fn new(program: &[u8]) -> Self {
+        let mut memory = [0; 1024 * 1024];
+        memory[..program.len()].copy_from_slice(&program);
+
         Self {
-            program,
-            _memory: [0; 1024 * 1024],
+            memory,
             registers: [0; 8],
             segment_registers: [0; 4],
             ip: 0,

@@ -37,6 +37,7 @@ pub enum InstructionData {
         op_code: JumpOpCode,
         target: i8,
     },
+    HLT,
 }
 
 impl Display for Instruction {
@@ -78,6 +79,7 @@ impl Display for Instruction {
                 write!(f, "{}{}{},{}", op_code, size, destination, source)
             }
             InstructionData::Jump { op_code, target } => write!(f, "{} ${:+}", op_code, target),
+            InstructionData::HLT => write!(f, "HLT"),
         }
     }
 }
@@ -162,13 +164,13 @@ impl Display for SegmentRegister {
 
 pub struct Memory {
     pub address: EAC,
-    pub segment_prefix: Option<SegmentRegister>,
+    pub segment_override: Option<SegmentRegister>,
 }
 
 impl Display for Memory {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match &self.segment_prefix {
-            Some(segment_prefix) => write!(f, "{}:[{}]", segment_prefix, self.address),
+        match &self.segment_override {
+            Some(segment_override) => write!(f, "{}:[{}]", segment_override, self.address),
             None => write!(f, "[{}]", self.address),
         }
     }

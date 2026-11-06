@@ -12,9 +12,9 @@ fn main() -> std::io::Result<()> {
 
     let file_path = &args[1];
 
-    let program: Box<[u8]> = std::fs::read(file_path)?.into();
+    let program = std::fs::read(file_path)?;
 
-    let mut sim86 = Sim86::new(program);
+    let mut sim86 = Sim86::new(&program);
 
     sim86.run(true);
 

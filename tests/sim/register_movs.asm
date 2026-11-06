@@ -14,3 +14,5 @@ mov dx, sp
 mov cx, bp
 mov bx, si
 mov ax, di
+
+hlt

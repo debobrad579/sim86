@@ -18,3 +18,5 @@ add cx, -90
 mov sp, 99
 mov bp, 98
 cmp bp, sp
+
+hlt
