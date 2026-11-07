@@ -9,7 +9,7 @@ pub mod run;
 pub mod shift_rotate;
 
 pub struct Sim86 {
-    memory: [u8; 1024 * 1024],
+    memory: Vec<u8>,
     registers: [u16; 8],
     segment_registers: [u16; 4],
     ip: usize,
@@ -19,7 +19,7 @@ pub struct Sim86 {
 impl Default for Sim86 {
     fn default() -> Self {
         Self {
-            memory: [0; 1024 * 1024],
+            memory: vec![0; 1024 * 1024],
             registers: [0; 8],
             segment_registers: [0; 4],
             ip: 0,
@@ -31,6 +31,22 @@ impl Default for Sim86 {
 impl Sim86 {
     pub fn load(&mut self, program: &[u8]) {
         self.memory[..program.len()].copy_from_slice(program);
+    }
+
+    pub fn registers(&self) -> [u16; 8] {
+        self.registers
+    }
+
+    pub fn segment_registers(&self) -> [u16; 4] {
+        self.segment_registers
+    }
+
+    pub fn ip(&self) -> usize {
+        self.ip
+    }
+
+    pub fn flags(&self) -> u16 {
+        self.flags
     }
 }
 
