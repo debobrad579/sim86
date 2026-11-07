@@ -1,5 +1,5 @@
 use crate::{
-    decode::{alu, misc, mov, op_code::get_conditional_jump_op_code, shift_rotate},
+    decode::{alu, misc, mov, op_code::get_conditional_jump_op_code, shift_rotate, stack},
     types::{AluBinaryOpCode, Instruction, SegmentRegister},
 };
 
@@ -26,13 +26,19 @@ impl From<&[u8]> for Instruction {
             0xC6 | 0xC7 => mov::immediate_to_rm(bytes, segment_override),
             0xB0..=0xBF => mov::immediate_to_register(bytes),
             0xA0..=0xA3 => mov::memory_to_from_accumulator(bytes, segment_override),
+            0xFF if (bytes[1] >> 3) & 0b111 == 0b110 => stack::push_rm(bytes, segment_override),
+            0x50..=0x57 => stack::push_reg(bytes),
+            0x06 | 0x0E | 0x16 | 0x1E => stack::push_sr(bytes),
+            0x8F if (bytes[1] >> 3) & 0b111 == 0b000 => stack::pop_rm(bytes, segment_override),
+            0x58..=0x5F => stack::pop_reg(bytes),
+            0x07 | 0x0F | 0x17 | 0x1F => stack::pop_sr(bytes),
             0x8D => misc::load_effective_address(bytes),
             0x80..=0x83 => alu::immediate_to_rm(bytes, segment_override, None),
             0x84 | 0x85 => {
                 alu::rm_with_reg_to_either(bytes, segment_override, Some(AluBinaryOpCode::TEST))
             }
             0xA8 | 0xA9 => alu::immediate_to_accumulator(bytes, Some(AluBinaryOpCode::TEST)),
-            0xF6 | 0xF7 if (bytes[1] >> 3) & 0b111 == 0 => {
+            0xF6 | 0xF7 if (bytes[1] >> 3) & 0b111 == 0b000 => {
                 alu::immediate_to_rm(bytes, segment_override, Some(AluBinaryOpCode::TEST))
             }
             0xF6 | 0xF7 | 0xFE | 0xFF => alu::unary_rm(bytes, segment_override),

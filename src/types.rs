@@ -45,6 +45,12 @@ pub enum InstructionData {
         destination: Operand,
         source: Operand,
     },
+    PUSH {
+        operand: Operand,
+    },
+    POP {
+        operand: Operand,
+    },
     LEA {
         operand: Operand,
         eac: EffectiveAddressCalculation,
@@ -81,18 +87,16 @@ impl Display for Instruction {
                 destination,
                 source,
             } => {
-                let mut size = " ";
-                if !matches!(destination, Operand::Register(_))
-                    && !matches!(source, Operand::Register(_))
-                {
-                    match width {
-                        Width::Byte => size = " BYTE ",
-                        Width::Word => size = " WORD ",
-                    }
-                }
-
-                write!(f, "MOV{}{},{}", size, destination, source)
+                write!(
+                    f,
+                    "MOV{}{},{}",
+                    format_width(width, &[destination, source]),
+                    destination,
+                    source
+                )
             }
+            InstructionData::PUSH { operand } => write!(f, "PUSH {}", operand),
+            InstructionData::POP { operand } => write!(f, "POP {}", operand),
             InstructionData::LEA { operand, eac } => write!(f, "LEA {},[{}]", operand, eac),
             InstructionData::AluBinary {
                 op_code,
@@ -100,32 +104,27 @@ impl Display for Instruction {
                 destination,
                 source,
             } => {
-                let mut size = " ";
-                if !matches!(destination, Operand::Register(_))
-                    && !matches!(source, Operand::Register(_))
-                {
-                    match width {
-                        Width::Byte => size = " BYTE ",
-                        Width::Word => size = " WORD ",
-                    }
-                }
-
-                write!(f, "{}{}{},{}", op_code, size, destination, source)
+                write!(
+                    f,
+                    "{}{}{},{}",
+                    op_code,
+                    format_width(width, &[destination, source]),
+                    destination,
+                    source
+                )
             }
             InstructionData::AluUnary {
                 op_code,
                 width,
                 operand,
             } => {
-                let mut size = " ";
-                if !matches!(operand, Operand::Register(_)) {
-                    match width {
-                        Width::Byte => size = " BYTE ",
-                        Width::Word => size = " WORD ",
-                    }
-                }
-
-                write!(f, "{}{}{}", op_code, size, operand)
+                write!(
+                    f,
+                    "{}{}{}",
+                    op_code,
+                    format_width(width, &[operand]),
+                    operand
+                )
             }
             InstructionData::ShiftRotate {
                 op_code,
@@ -133,15 +132,14 @@ impl Display for Instruction {
                 operand,
                 amount,
             } => {
-                let mut size = " ";
-                if !matches!(operand, Operand::Register(_)) {
-                    match width {
-                        Width::Byte => size = " BYTE ",
-                        Width::Word => size = " WORD ",
-                    }
-                }
-
-                write!(f, "{}{}{},{}", op_code, size, operand, amount)
+                write!(
+                    f,
+                    "{}{}{},{}",
+                    op_code,
+                    format_width(width, &[operand]),
+                    operand,
+                    amount
+                )
             }
             InstructionData::Jump { op_code, target } => write!(f, "{} ${:+}", op_code, target),
             InstructionData::HLT => write!(f, "HLT"),
@@ -361,5 +359,19 @@ pub enum JumpOpCode {
 impl Display for JumpOpCode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self)
+    }
+}
+
+fn format_width(width: &Width, operands: &[&Operand]) -> &'static str {
+    if operands
+        .iter()
+        .all(|op| !matches!(op, Operand::Register(_)))
+    {
+        match width {
+            Width::Byte => " BYTE ",
+            Width::Word => " WORD ",
+        }
+    } else {
+        " "
     }
 }

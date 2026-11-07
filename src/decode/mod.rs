@@ -5,6 +5,7 @@ pub mod misc;
 pub mod mov;
 pub mod op_code;
 pub mod shift_rotate;
+pub mod stack;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum Direction {

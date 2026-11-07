@@ -11,6 +11,8 @@ impl Sim86 {
                 source,
                 width,
             } => self.set_value(destination, self.get_value(&source, &width), &width),
+            InstructionData::PUSH { operand } => todo!(),
+            InstructionData::POP { operand } => todo!(),
             InstructionData::LEA { operand, eac } => {
                 self.set_value(operand, self.get_effective_address(&eac), &Width::Word)
             }
