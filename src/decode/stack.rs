@@ -110,3 +110,31 @@ pub fn call_indirect_intersegment(
         size: mod_rm.size,
     }
 }
+
+pub fn ret() -> Instruction {
+    Instruction {
+        data: InstructionData::RET(0),
+        size: 1,
+    }
+}
+
+pub fn ret_adding_immediate_to_sp(bytes: &[u8]) -> Instruction {
+    Instruction {
+        data: InstructionData::RET(u16::from_le_bytes([bytes[1], bytes[2]])),
+        size: 3,
+    }
+}
+
+pub fn retf() -> Instruction {
+    Instruction {
+        data: InstructionData::RETF(0),
+        size: 1,
+    }
+}
+
+pub fn retf_adding_immediate_to_sp(bytes: &[u8]) -> Instruction {
+    Instruction {
+        data: InstructionData::RETF(u16::from_le_bytes([bytes[1], bytes[2]])),
+        size: 3,
+    }
+}

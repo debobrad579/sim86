@@ -41,6 +41,10 @@ impl From<&[u8]> for Instruction {
             0xFF if (bytes[1] >> 3) & 0b111 == 0b011 => {
                 stack::call_indirect_intersegment(bytes, segment_override)
             }
+            0xC3 => stack::ret(),
+            0xC2 => stack::ret_adding_immediate_to_sp(bytes),
+            0xCB => stack::retf(),
+            0xCA => stack::retf_adding_immediate_to_sp(bytes),
             0xE9 => jumps::direct_within_segment(bytes),
             0xEB => jumps::direct_within_segment_short(bytes),
             0xFF if (bytes[1] >> 3) & 0b111 == 0b100 => {

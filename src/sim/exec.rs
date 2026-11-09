@@ -54,8 +54,10 @@ impl Sim86 {
                 );
                 self.registers[4] += 2;
             }
-            InstructionData::JMP(_) => todo!(),
             InstructionData::CALL(_) => todo!(),
+            InstructionData::RET(_) => todo!(),
+            InstructionData::RETF(_) => todo!(),
+            InstructionData::JMP(_) => todo!(),
             InstructionData::LEA { operand, eac } => {
                 self.set_value(operand, self.get_effective_address(&eac), &Width::Word)
             }

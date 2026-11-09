@@ -23,6 +23,14 @@ pub enum InstructionData {
     POP {
         operand: Operand,
     },
+    CALL(Jump),
+    RET(u16),
+    RETF(u16),
+    JMP(Jump),
+    ConditionalJump {
+        op_code: ConditionalJumpOpCode,
+        target: i8,
+    },
     LEA {
         operand: Operand,
         eac: EffectiveAddressCalculation,
@@ -44,12 +52,6 @@ pub enum InstructionData {
         operand: Operand,
         amount: Operand,
     },
-    CALL(Jump),
-    JMP(Jump),
-    ConditionalJump {
-        op_code: ConditionalJumpOpCode,
-        target: i8,
-    },
     HLT,
 }
 
@@ -66,6 +68,20 @@ impl Display for Instruction {
             InstructionData::PUSH { operand } => write!(f, "PUSH {}", operand),
             InstructionData::POP { operand } => write!(f, "POP {}", operand),
             InstructionData::CALL(jump) => write!(f, "CALL {}", jump),
+            InstructionData::RET(immediate) => {
+                if *immediate == 0 {
+                    write!(f, "RET")
+                } else {
+                    write!(f, "RET {}", immediate)
+                }
+            }
+            InstructionData::RETF(immediate) => {
+                if *immediate == 0 {
+                    write!(f, "RETF")
+                } else {
+                    write!(f, "RETF {}", immediate)
+                }
+            }
             InstructionData::LEA { operand, eac } => write!(f, "LEA {},[{}]", operand, eac),
             InstructionData::AluBinary {
                 op_code,
