@@ -8,7 +8,7 @@ use crate::types::{
 
 pub struct Instruction {
     pub data: InstructionData,
-    pub size: usize,
+    pub size: u16,
 }
 
 pub enum InstructionData {

@@ -7,7 +7,7 @@ pub struct ModRM {
     pub reg: Operand,
     pub rm: Operand,
     pub width: Width,
-    pub size: usize,
+    pub size: u16,
 }
 
 pub enum ModRMType {
@@ -30,7 +30,7 @@ pub fn decode_modrm(
     let mode = bytes[1] >> 6;
     let rm = bytes[1] & 0b00000111;
 
-    let (rm_value, displacement_size): (Operand, usize) = match mode {
+    let (rm_value, displacement_size): (Operand, u16) = match mode {
         0b00 => {
             if rm == 0b110 {
                 (
@@ -96,8 +96,8 @@ pub fn decode_modrm(
             let offset = 2 + displacement_size;
 
             let raw_value = match immediate_size {
-                1 => bytes[offset] as u16,
-                2 => u16::from_le_bytes([bytes[offset], bytes[offset + 1]]),
+                1 => bytes[offset as usize] as u16,
+                2 => u16::from_le_bytes([bytes[offset as usize], bytes[offset as usize + 1]]),
                 _ => unreachable!(),
             };
 

@@ -1,12 +1,12 @@
 use std::fmt::Display;
 
-use crate::types::operand::Operand;
+use crate::types::operand::{Memory, Operand};
 
 pub enum Jump {
     DirectWithinSegment(i16),
     IndirectWithinSegment(Operand),
     DirectIntersegment { ip: u16, cs: u16 },
-    IndirectIntersegment(Operand),
+    IndirectIntersegment(Memory),
 }
 
 impl Display for Jump {
@@ -15,7 +15,7 @@ impl Display for Jump {
             Jump::DirectWithinSegment(target) => write!(f, "${:+}", target + 3),
             Jump::IndirectWithinSegment(operand) => write!(f, "{}", operand),
             Jump::DirectIntersegment { ip, cs } => write!(f, "{}:{}", cs, ip),
-            Jump::IndirectIntersegment(operand) => write!(f, "far {}", operand),
+            Jump::IndirectIntersegment(memory) => write!(f, "far {}", memory),
         }
     }
 }

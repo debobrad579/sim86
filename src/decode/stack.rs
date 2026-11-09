@@ -105,9 +105,13 @@ pub fn call_indirect_intersegment(
 ) -> Instruction {
     let mod_rm = decode_modrm(bytes, ModRMType::Register, segment_override);
 
-    Instruction {
-        data: InstructionData::CALL(Jump::IndirectIntersegment(mod_rm.rm)),
-        size: mod_rm.size,
+    if let Operand::Memory(memory) = mod_rm.rm {
+        Instruction {
+            data: InstructionData::CALL(Jump::IndirectIntersegment(memory)),
+            size: mod_rm.size,
+        }
+    } else {
+        unreachable!("indirect intersegment call must have memory operand")
     }
 }
 

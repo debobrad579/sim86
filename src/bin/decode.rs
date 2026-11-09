@@ -23,7 +23,7 @@ fn main() -> std::io::Result<()> {
 
         println!("{}", instruction);
 
-        count -= instruction.size;
+        count -= instruction.size as usize;
     }
 
     Ok(())

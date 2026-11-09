@@ -9,9 +9,9 @@ use crate::{
 impl Sim86 {
     pub fn run(&mut self, print: bool) {
         loop {
-            let instruction = Instruction::from(&self.memory[self.ip..]);
+            let instruction = Instruction::from(&self.memory[self.ip as usize..]);
 
-            self.ip += instruction.size;
+            self.ip += instruction.size as u16;
 
             if print {
                 println!("{}", instruction);
@@ -32,11 +32,11 @@ impl Sim86 {
         file.write_all(&self.memory).unwrap();
     }
 
-    pub(super) fn update_ip(&mut self, offset: i8) {
-        if offset >= 0 {
-            self.ip += offset as usize
+    pub(super) fn increment_ip(&mut self, inc: i16) {
+        if inc >= 0 {
+            self.ip += inc as u16
         } else {
-            self.ip -= (-offset) as usize
+            self.ip -= (-inc) as u16
         }
     }
 }

@@ -116,7 +116,8 @@ fn add_loop_challenge() {
 }
 
 #[test]
-fn push_pop() {
-    let sim86 = run_sim86("tests/sim/push_pop.asm");
-    assert_eq!(sim86.registers(), [4, 2, 1, 3, 0x03E8, 0, 0, 0]);
+fn stack() {
+    let sim86 = run_sim86("tests/sim/stack.asm");
+    assert_eq!(sim86.registers(), [1, 0, 0, 2, 0x9C40, 0, 0, 0]);
+    assert_eq!(sim86.flags(), 0b0000_0000_1001_0001);
 }

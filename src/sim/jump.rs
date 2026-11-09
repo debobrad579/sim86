@@ -1,7 +1,39 @@
-use crate::{sim::Sim86, types::jump::ConditionalJumpOpCode};
+use crate::{
+    sim::Sim86,
+    types::{
+        jump::{ConditionalJumpOpCode, Jump},
+        width::Width,
+    },
+};
 
 impl Sim86 {
-    pub(super) fn exec_jump_instruction(&mut self, op_code: ConditionalJumpOpCode, target: i8) {
+    pub(super) fn get_new_ip_cs(&mut self, jump: Jump) -> (u16, Option<u16>) {
+        match jump {
+            Jump::DirectWithinSegment(target) => (
+                if target >= 0 {
+                    self.ip + target as u16
+                } else {
+                    self.ip - (-target) as u16
+                },
+                None,
+            ),
+            Jump::IndirectWithinSegment(operand) => (self.get_value(&operand, &Width::Word), None),
+            Jump::DirectIntersegment { ip, cs } => (ip, Some(cs)),
+            Jump::IndirectIntersegment(memory) => {
+                let address = self.get_memory_address(&memory);
+
+                (
+                    u16::from_le_bytes([self.memory[address], self.memory[address + 1]]),
+                    Some(u16::from_le_bytes([
+                        self.memory[address + 2],
+                        self.memory[address + 3],
+                    ])),
+                )
+            }
+        }
+    }
+
+    pub(super) fn exec_conditional_jump(&mut self, op_code: ConditionalJumpOpCode, target: i8) {
         if match op_code {
             ConditionalJumpOpCode::JO => self.get_overflow_flag(),
             ConditionalJumpOpCode::JNO => !self.get_overflow_flag(),
@@ -37,7 +69,7 @@ impl Sim86 {
             }
             ConditionalJumpOpCode::JCXZ => self.registers[1] == 0,
         } {
-            self.update_ip(target)
+            self.increment_ip(target as i16)
         }
     }
 }

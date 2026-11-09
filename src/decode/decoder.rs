@@ -79,7 +79,7 @@ impl From<&[u8]> for Instruction {
 
         Self {
             data: instruction.data,
-            size: offset + instruction.size,
+            size: offset as u16 + instruction.size,
         }
     }
 }

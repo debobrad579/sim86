@@ -16,7 +16,7 @@ fn decode(data: &[u8]) -> String {
 
         out.push_str(&format!("{}\n", instruction));
 
-        count -= instruction.size;
+        count -= instruction.size as usize;
     }
 
     out

@@ -67,7 +67,12 @@ impl Sim86 {
     }
 
     pub(super) fn get_memory_address(&self, memory: &Memory) -> usize {
-        let sr_value = self.segment_registers[match &memory.segment_override {
+        (self.get_memory_segment_value(memory) << 4) as usize
+            + self.get_effective_address(&memory.address) as usize
+    }
+
+    pub(super) fn get_memory_segment_value(&self, memory: &Memory) -> u16 {
+        self.segment_registers[match &memory.segment_override {
             Some(segment_prefix) => segment_prefix.value(),
             None => {
                 if let EffectiveAddressCalculation::Calculation { ref base, .. } = memory.address
@@ -78,9 +83,7 @@ impl Sim86 {
                     0b11
                 }
             }
-        } as usize] as usize;
-
-        (sr_value << 4) + self.get_effective_address(&memory.address) as usize
+        } as usize]
     }
 
     pub(super) fn get_register(&self, register: &Register) -> u16 {

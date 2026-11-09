@@ -3,7 +3,7 @@ use crate::{
     types::{
         instruction::{Instruction, InstructionData},
         jump::{ConditionalJumpOpCode, Jump},
-        operand::SegmentRegister,
+        operand::{Operand, SegmentRegister},
     },
 };
 
@@ -87,8 +87,12 @@ pub fn indirect_intersegment(
 ) -> Instruction {
     let mod_rm = decode_modrm(bytes, ModRMType::Register, segment_override);
 
-    Instruction {
-        data: InstructionData::JMP(Jump::IndirectIntersegment(mod_rm.rm)),
-        size: mod_rm.size,
+    if let Operand::Memory(memory) = mod_rm.rm {
+        Instruction {
+            data: InstructionData::JMP(Jump::IndirectIntersegment(memory)),
+            size: mod_rm.size,
+        }
+    } else {
+        unreachable!("indirect intersegment jump must have memory operand")
     }
 }

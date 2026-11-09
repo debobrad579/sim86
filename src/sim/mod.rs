@@ -7,12 +7,13 @@ pub mod get_set;
 pub mod jump;
 pub mod run;
 pub mod shift_rotate;
+pub mod utils;
 
 pub struct Sim86 {
     memory: Vec<u8>,
     registers: [u16; 8],
     segment_registers: [u16; 4],
-    ip: usize,
+    ip: u16,
     flags: u16,
 }
 
@@ -41,7 +42,7 @@ impl Sim86 {
         self.segment_registers
     }
 
-    pub fn ip(&self) -> usize {
+    pub fn ip(&self) -> u16 {
         self.ip
     }
 
