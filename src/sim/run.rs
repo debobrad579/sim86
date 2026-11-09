@@ -3,7 +3,7 @@ use std::io::Write;
 
 use crate::{
     sim::Sim86,
-    types::{Instruction, InstructionData},
+    types::instruction::{Instruction, InstructionData},
 };
 
 impl Sim86 {

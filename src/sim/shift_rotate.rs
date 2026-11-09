@@ -1,6 +1,6 @@
 use crate::{
     sim::Sim86,
-    types::{Operand, ShiftRotateOpCode, Width},
+    types::{instruction::ShiftRotateOpCode, operand::Operand, width::Width},
 };
 
 impl Sim86 {

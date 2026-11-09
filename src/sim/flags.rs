@@ -1,4 +1,4 @@
-use crate::{sim::Sim86, types::Width};
+use crate::{sim::Sim86, types::width::Width};
 
 macro_rules! set_bit {
     ($x:expr, $bit:expr, $value:expr) => {

@@ -114,3 +114,9 @@ fn add_loop_challenge() {
     assert_eq!(sim86.ip(), 0x0022);
     assert_eq!(sim86.flags(), 0b0000_0000_0100_0100);
 }
+
+#[test]
+fn push_pop() {
+    let sim86 = run_sim86("tests/sim/push_pop.asm");
+    assert_eq!(sim86.registers(), [4, 2, 1, 3, 0x03E8, 0, 0, 0]);
+}

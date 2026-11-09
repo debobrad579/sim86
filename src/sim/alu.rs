@@ -1,6 +1,10 @@
 use crate::{
     sim::{Sim86, flags::AdditionalFlags},
-    types::{AluBinaryOpCode, AluUnaryOpCode, Operand, Width},
+    types::{
+        instruction::{AluBinaryOpCode, AluUnaryOpCode},
+        operand::Operand,
+        width::Width,
+    },
 };
 
 fn add(a: u16, b: u16, carry_in: bool, width: Width) -> (u16, AdditionalFlags) {

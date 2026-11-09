@@ -1,5 +1,6 @@
 use crate::types::{
-    EffectiveAddressCalculation, Immediate, Memory, Operand, Register, SegmentRegister, Width,
+    operand::{EffectiveAddressCalculation, Immediate, Memory, Operand, Register, SegmentRegister},
+    width::Width,
 };
 
 pub struct ModRM {

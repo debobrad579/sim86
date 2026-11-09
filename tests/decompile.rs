@@ -2,7 +2,7 @@ use std::fs;
 use std::path::Path;
 use std::process::Command;
 
-use sim86::types::Instruction;
+use sim86::types::instruction::Instruction;
 
 fn decode(data: &[u8]) -> String {
     let mut out = String::from("bits 16\n");

@@ -4,8 +4,11 @@ use crate::{
         memory::{ModRMType, decode_modrm},
     },
     types::{
-        EffectiveAddressCalculation, Immediate, Instruction, InstructionData, Memory, Operand,
-        Register, SegmentRegister, Width,
+        instruction::{Instruction, InstructionData},
+        operand::{
+            EffectiveAddressCalculation, Immediate, Memory, Operand, Register, SegmentRegister,
+        },
+        width::Width,
     },
 };
 

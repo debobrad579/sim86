@@ -1,6 +1,10 @@
 use crate::{
     decode::memory::{ModRMType, decode_modrm},
-    types::{Instruction, InstructionData, Operand, Register, SegmentRegister, Width},
+    types::{
+        instruction::{Instruction, InstructionData},
+        operand::{Operand, Register, SegmentRegister},
+        width::Width,
+    },
 };
 
 pub fn push_rm(bytes: &[u8], segment_override: Option<SegmentRegister>) -> Instruction {

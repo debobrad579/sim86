@@ -1,17 +1,10 @@
 use crate::{
     decode::memory::{ModRMType, decode_modrm},
-    types::{Instruction, InstructionData, JumpOpCode, Operand},
+    types::{
+        instruction::{Instruction, InstructionData},
+        operand::Operand,
+    },
 };
-
-pub fn conditional_jump(bytes: &[u8], op_code: JumpOpCode) -> Instruction {
-    Instruction {
-        data: InstructionData::Jump {
-            op_code,
-            target: bytes[1] as i8 + 2,
-        },
-        size: 2,
-    }
-}
 
 pub fn halt() -> Instruction {
     Instruction {

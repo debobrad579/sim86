@@ -1,6 +1,10 @@
 use crate::{
     sim::Sim86,
-    types::{Instruction, InstructionData, Width},
+    types::{
+        instruction::{Instruction, InstructionData},
+        operand::{EffectiveAddressCalculation, Memory, Operand, Register},
+        width::Width,
+    },
 };
 
 impl Sim86 {
@@ -11,8 +15,45 @@ impl Sim86 {
                 source,
                 width,
             } => self.set_value(destination, self.get_value(&source, &width), &width),
-            InstructionData::PUSH { operand } => todo!(),
-            InstructionData::POP { operand } => todo!(),
+            InstructionData::PUSH { operand } => {
+                self.registers[4] -= 2;
+                self.set_value(
+                    Operand::Memory(Memory {
+                        address: EffectiveAddressCalculation::Calculation {
+                            base: Register {
+                                width: Width::Word,
+                                value: 0b100,
+                            },
+                            index: None,
+                            displacement: 0,
+                        },
+                        segment_override: None,
+                    }),
+                    self.get_value(&operand, &Width::Word),
+                    &Width::Word,
+                );
+            }
+            InstructionData::POP { operand } => {
+                self.set_value(
+                    operand,
+                    self.get_value(
+                        &Operand::Memory(Memory {
+                            address: EffectiveAddressCalculation::Calculation {
+                                base: Register {
+                                    width: Width::Word,
+                                    value: 0b100,
+                                },
+                                index: None,
+                                displacement: 0,
+                            },
+                            segment_override: None,
+                        }),
+                        &Width::Word,
+                    ),
+                    &Width::Word,
+                );
+                self.registers[4] += 2;
+            }
             InstructionData::LEA { operand, eac } => {
                 self.set_value(operand, self.get_effective_address(&eac), &Width::Word)
             }

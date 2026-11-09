@@ -2,13 +2,41 @@ use crate::{
     decode::{
         Direction,
         memory::{ModRMType, decode_modrm},
-        op_code::{get_alu_binary_op_code, get_alu_unary_op_code},
     },
     types::{
-        AluBinaryOpCode, Immediate, Instruction, InstructionData, Operand, Register,
-        SegmentRegister, Width,
+        instruction::{AluBinaryOpCode, AluUnaryOpCode, Instruction, InstructionData},
+        operand::{Immediate, Operand, Register, SegmentRegister},
+        width::Width,
     },
 };
+
+fn get_alu_unary_op_code(literal: u8) -> AluUnaryOpCode {
+    match literal {
+        0b000 => AluUnaryOpCode::INC,
+        0b001 => AluUnaryOpCode::DEC,
+        0b010 => AluUnaryOpCode::NOT,
+        0b011 => AluUnaryOpCode::NEG,
+        0b100 => AluUnaryOpCode::MUL,
+        0b101 => AluUnaryOpCode::IMUL,
+        0b110 => AluUnaryOpCode::DIV,
+        0b111 => AluUnaryOpCode::IDIV,
+        _ => unreachable!("invalid unary alu op code"),
+    }
+}
+
+fn get_alu_binary_op_code(literal: u8) -> AluBinaryOpCode {
+    match literal {
+        0b000 => AluBinaryOpCode::ADD,
+        0b001 => AluBinaryOpCode::OR,
+        0b010 => AluBinaryOpCode::ADC,
+        0b011 => AluBinaryOpCode::SBB,
+        0b100 => AluBinaryOpCode::AND,
+        0b101 => AluBinaryOpCode::SUB,
+        0b110 => AluBinaryOpCode::XOR,
+        0b111 => AluBinaryOpCode::CMP,
+        _ => unreachable!("invalid binary alu op code"),
+    }
+}
 
 pub fn rm_with_reg_to_either(
     bytes: &[u8],
@@ -17,7 +45,6 @@ pub fn rm_with_reg_to_either(
 ) -> Instruction {
     let direction = Direction::from((bytes[0] & 0b00000010) >> 1);
     let literal = (bytes[0] & 0b00111000) >> 3;
-
     let op_code = if let Some(op_code_override) = op_code_override {
         op_code_override
     } else {

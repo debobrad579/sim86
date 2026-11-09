@@ -1,8 +1,9 @@
 use crate::{
     decode::memory::{ModRMType, decode_modrm},
     types::{
-        Immediate, Instruction, InstructionData, Operand, Register, SegmentRegister,
-        ShiftRotateOpCode, Width,
+        instruction::{Instruction, InstructionData, ShiftRotateOpCode},
+        operand::{Immediate, Operand, Register, SegmentRegister},
+        width::Width,
     },
 };
 

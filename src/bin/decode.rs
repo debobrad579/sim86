@@ -1,6 +1,6 @@
 use std::env;
 
-use sim86::types::Instruction;
+use sim86::types::instruction::Instruction;
 
 fn main() -> std::io::Result<()> {
     let args: Vec<String> = env::args().collect();

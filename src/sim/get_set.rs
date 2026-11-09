@@ -1,6 +1,9 @@
 use crate::{
     sim::Sim86,
-    types::{EffectiveAddressCalculation, Immediate, Memory, Operand, Register, Width},
+    types::{
+        operand::{EffectiveAddressCalculation, Immediate, Memory, Operand, Register},
+        width::Width,
+    },
 };
 
 impl Sim86 {
