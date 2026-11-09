@@ -33,6 +33,23 @@ impl From<&[u8]> for Instruction {
             0x50..=0x57 => stack::push_reg(bytes),
             0x06 | 0x0E | 0x16 | 0x1E => stack::push_sr(bytes),
             0x8F if (bytes[1] >> 3) & 0b111 == 0b000 => stack::pop_rm(bytes, segment_override),
+            0xE8 => stack::call_direct_within_segment(bytes),
+            0xFF if (bytes[1] >> 3) & 0b111 == 0b010 => {
+                stack::call_indirect_within_segment(bytes, segment_override)
+            }
+            0x9A => stack::call_direct_intersegment(bytes),
+            0xFF if (bytes[1] >> 3) & 0b111 == 0b011 => {
+                stack::call_indirect_intersegment(bytes, segment_override)
+            }
+            0xE9 => jumps::direct_within_segment(bytes),
+            0xEB => jumps::direct_within_segment_short(bytes),
+            0xFF if (bytes[1] >> 3) & 0b111 == 0b100 => {
+                jumps::indirect_within_segment(bytes, segment_override)
+            }
+            0xEA => jumps::direct_intersegment(bytes),
+            0xFF if (bytes[1] >> 3) & 0b111 == 0b101 => {
+                jumps::indirect_intersegment(bytes, segment_override)
+            }
             0x58..=0x5F => stack::pop_reg(bytes),
             0x07 | 0x0F | 0x17 | 0x1F => stack::pop_sr(bytes),
             0x8D => misc::load_effective_address(bytes),

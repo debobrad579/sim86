@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
 use crate::types::{
-    jump::ConditionalJumpOpCode,
+    jump::{ConditionalJumpOpCode, Jump},
     operand::{EffectiveAddressCalculation, Operand},
     width::Width,
 };
@@ -44,7 +44,9 @@ pub enum InstructionData {
         operand: Operand,
         amount: Operand,
     },
-    Jump {
+    CALL(Jump),
+    JMP(Jump),
+    ConditionalJump {
         op_code: ConditionalJumpOpCode,
         target: i8,
     },
@@ -63,6 +65,7 @@ impl Display for Instruction {
             }
             InstructionData::PUSH { operand } => write!(f, "PUSH {}", operand),
             InstructionData::POP { operand } => write!(f, "POP {}", operand),
+            InstructionData::CALL(jump) => write!(f, "CALL {}", jump),
             InstructionData::LEA { operand, eac } => write!(f, "LEA {},[{}]", operand, eac),
             InstructionData::AluBinary {
                 op_code,
@@ -87,7 +90,10 @@ impl Display for Instruction {
             } => {
                 write!(f, "{} {} {},{}", op_code, width, operand, amount)
             }
-            InstructionData::Jump { op_code, target } => write!(f, "{} ${:+}", op_code, target + 2),
+            InstructionData::JMP(jump) => write!(f, "JMP {}", jump),
+            InstructionData::ConditionalJump { op_code, target } => {
+                write!(f, "{} ${:+}", op_code, target + 2)
+            }
             InstructionData::HLT => write!(f, "HLT"),
         }
     }

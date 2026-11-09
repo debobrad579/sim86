@@ -2,6 +2,7 @@ use crate::{
     decode::memory::{ModRMType, decode_modrm},
     types::{
         instruction::{Instruction, InstructionData},
+        jump::Jump,
         operand::{Operand, Register, SegmentRegister},
         width::Width,
     },
@@ -64,5 +65,48 @@ pub fn pop_sr(bytes: &[u8]) -> Instruction {
             operand: Operand::SegmentRegistry(SegmentRegister::from((bytes[0] >> 3) & 0b11)),
         },
         size: 1,
+    }
+}
+
+pub fn call_direct_within_segment(bytes: &[u8]) -> Instruction {
+    Instruction {
+        data: InstructionData::CALL(Jump::DirectWithinSegment(u16::from_le_bytes([
+            bytes[1], bytes[2],
+        ]) as i16)),
+        size: 3,
+    }
+}
+
+pub fn call_indirect_within_segment(
+    bytes: &[u8],
+    segment_override: Option<SegmentRegister>,
+) -> Instruction {
+    let mod_rm = decode_modrm(bytes, ModRMType::Register, segment_override);
+
+    Instruction {
+        data: InstructionData::CALL(Jump::IndirectWithinSegment(mod_rm.rm)),
+        size: mod_rm.size,
+    }
+}
+
+pub fn call_direct_intersegment(bytes: &[u8]) -> Instruction {
+    Instruction {
+        data: InstructionData::CALL(Jump::DirectIntersegment {
+            ip: u16::from_le_bytes([bytes[1], bytes[2]]),
+            cs: u16::from_le_bytes([bytes[3], bytes[4]]),
+        }),
+        size: 5,
+    }
+}
+
+pub fn call_indirect_intersegment(
+    bytes: &[u8],
+    segment_override: Option<SegmentRegister>,
+) -> Instruction {
+    let mod_rm = decode_modrm(bytes, ModRMType::Register, segment_override);
+
+    Instruction {
+        data: InstructionData::CALL(Jump::IndirectIntersegment(mod_rm.rm)),
+        size: mod_rm.size,
     }
 }

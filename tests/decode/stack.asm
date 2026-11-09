@@ -13,3 +13,12 @@ pop sp
 pop di
 pop si
 pop ds
+
+call [39201]
+call [bp - 100]
+call sp
+call ax
+call [bp+si-0x3a]
+call far [bp+si-0x3a]
+call 11804
+call 123:456

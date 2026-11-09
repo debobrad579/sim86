@@ -54,6 +54,8 @@ impl Sim86 {
                 );
                 self.registers[4] += 2;
             }
+            InstructionData::JMP(_) => todo!(),
+            InstructionData::CALL(_) => todo!(),
             InstructionData::LEA { operand, eac } => {
                 self.set_value(operand, self.get_effective_address(&eac), &Width::Word)
             }
@@ -74,7 +76,7 @@ impl Sim86 {
                 amount,
                 width,
             } => self.exec_shift_rotate_instruction(op_code, operand, amount, width),
-            InstructionData::Jump { op_code, target } => {
+            InstructionData::ConditionalJump { op_code, target } => {
                 self.exec_jump_instruction(op_code, target)
             }
             InstructionData::HLT => unreachable!(),
