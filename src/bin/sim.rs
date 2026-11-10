@@ -17,7 +17,7 @@ fn main() -> std::io::Result<()> {
     let mut sim86 = Sim86::default();
     sim86.load(&program);
 
-    sim86.run(true);
+    sim86.run(false);
 
     Ok(())
 }

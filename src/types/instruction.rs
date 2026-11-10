@@ -52,6 +52,16 @@ pub enum InstructionData {
         operand: Operand,
         amount: Operand,
     },
+    IN {
+        width: Width,
+        operand: Operand,
+        port: Operand,
+    },
+    OUT {
+        width: Width,
+        operand: Operand,
+        port: Operand,
+    },
     HLT,
 }
 
@@ -110,6 +120,8 @@ impl Display for Instruction {
             InstructionData::ConditionalJump { op_code, target } => {
                 write!(f, "{} ${:+}", op_code, target + 2)
             }
+            InstructionData::IN { operand, port, .. } => write!(f, "IN {},{}", operand, port),
+            InstructionData::OUT { operand, port, .. } => write!(f, "OUT {},{}", port, operand),
             InstructionData::HLT => write!(f, "HLT"),
         }
     }

@@ -1,5 +1,5 @@
 use crate::{
-    decode::{alu, jumps, misc, mov, shift_rotate, stack},
+    decode::{alu, io, jumps, misc, mov, shift_rotate, stack},
     types::{
         instruction::{AluBinaryOpCode, Instruction},
         operand::SegmentRegister,
@@ -69,6 +69,10 @@ impl From<&[u8]> for Instruction {
             0x40..=0x5F => alu::unary_reg(bytes),
             0xD0..=0xD3 => shift_rotate::shift_rotate_rm(bytes, segment_override),
             0x70..=0x7F | 0xE0..=0xE3 => jumps::conditional_jump(bytes),
+            0xE4 | 0xE5 => io::in_fixed(bytes),
+            0xEC | 0xED => io::in_variable(bytes),
+            0xE6 | 0xE7 => io::out_fixed(bytes),
+            0xEE | 0xEF => io::out_variable(bytes),
             0xF4 => misc::halt(),
             byte if byte & 0b11000100 == 0 => {
                 alu::rm_with_reg_to_either(bytes, segment_override, None)

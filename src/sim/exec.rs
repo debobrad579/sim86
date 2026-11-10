@@ -1,9 +1,16 @@
+use std::io::{Write, stdout};
+
 use crate::{
     sim::{Sim86, utils::get_sp_memory_operand},
     types::{
         instruction::{Instruction, InstructionData},
         width::Width,
     },
+};
+
+use crossterm::{
+    event::{self, Event, KeyCode},
+    terminal::{disable_raw_mode, enable_raw_mode},
 };
 
 impl Sim86 {
@@ -86,6 +93,47 @@ impl Sim86 {
             } => self.exec_shift_rotate_instruction(op_code, operand, amount, width),
             InstructionData::ConditionalJump { op_code, target } => {
                 self.exec_conditional_jump(op_code, target)
+            }
+            InstructionData::IN {
+                width,
+                operand,
+                port,
+            } => {
+                let port = self.get_value(&port, &width);
+
+                if port == 0x00 {
+                    enable_raw_mode().unwrap();
+
+                    let result = loop {
+                        if let Event::Key(key_event) = event::read().unwrap() {
+                            match key_event.code {
+                                KeyCode::Enter => break '\n' as u16,
+                                KeyCode::Backspace => break '\x08' as u16,
+                                KeyCode::Char(c) => break c as u16,
+                                _ => {}
+                            }
+                        }
+                    };
+
+                    disable_raw_mode().unwrap();
+
+                    self.set_value(operand, result, &width);
+                }
+            }
+            InstructionData::OUT {
+                width,
+                operand,
+                port,
+            } => {
+                let port = self.get_value(&port, &width);
+
+                if port == 0x01 {
+                    print!("{}", self.get_value(&operand, &width) as u8 as char);
+                    if let Width::Word = width {
+                        print!("{}", (self.get_value(&operand, &width) >> 8) as u8 as char);
+                    }
+                    stdout().flush().unwrap();
+                }
             }
             InstructionData::HLT => unreachable!(),
         }

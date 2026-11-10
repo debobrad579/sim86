@@ -11,7 +11,7 @@ impl Sim86 {
         loop {
             let instruction = Instruction::from(&self.memory[self.ip as usize..]);
 
-            self.ip += instruction.size as u16;
+            self.ip += instruction.size;
 
             if print {
                 println!("{}", instruction);
