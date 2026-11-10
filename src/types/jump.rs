@@ -4,6 +4,7 @@ use crate::types::operand::{Memory, Operand};
 
 pub enum Jump {
     DirectWithinSegment(i16),
+    DirectWithinSegmentShort(i8),
     IndirectWithinSegment(Operand),
     DirectIntersegment { ip: u16, cs: u16 },
     IndirectIntersegment(Memory),
@@ -13,6 +14,7 @@ impl Display for Jump {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Jump::DirectWithinSegment(target) => write!(f, "${:+}", target + 3),
+            Jump::DirectWithinSegmentShort(target) => write!(f, "${:+}", target + 2),
             Jump::IndirectWithinSegment(operand) => write!(f, "{}", operand),
             Jump::DirectIntersegment { ip, cs } => write!(f, "{}:{}", cs, ip),
             Jump::IndirectIntersegment(memory) => write!(f, "far {}", memory),

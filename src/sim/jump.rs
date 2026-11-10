@@ -17,6 +17,14 @@ impl Sim86 {
                 },
                 None,
             ),
+            Jump::DirectWithinSegmentShort(target) => (
+                if target >= 0 {
+                    self.ip + target as u16
+                } else {
+                    self.ip - (-target) as u16
+                },
+                None,
+            ),
             Jump::IndirectWithinSegment(operand) => (self.get_value(&operand, &Width::Word), None),
             Jump::DirectIntersegment { ip, cs } => (ip, Some(cs)),
             Jump::IndirectIntersegment(memory) => {

@@ -54,7 +54,7 @@ pub fn direct_within_segment(bytes: &[u8]) -> Instruction {
 
 pub fn direct_within_segment_short(bytes: &[u8]) -> Instruction {
     Instruction {
-        data: InstructionData::JMP(Jump::DirectWithinSegment(bytes[1] as i8 as i16)),
+        data: InstructionData::JMP(Jump::DirectWithinSegmentShort(bytes[1] as i8)),
         size: 2,
     }
 }
