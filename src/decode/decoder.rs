@@ -73,6 +73,7 @@ impl From<&[u8]> for Instruction {
             0xEC | 0xED => io::in_variable(bytes),
             0xE6 | 0xE7 => io::out_fixed(bytes),
             0xEE | 0xEF => io::out_variable(bytes),
+            0x98 => misc::cbw(),
             0xF4 => misc::halt(),
             byte if byte & 0b11000100 == 0 => {
                 alu::rm_with_reg_to_either(bytes, segment_override, None)

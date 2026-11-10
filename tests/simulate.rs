@@ -121,3 +121,10 @@ fn stack() {
     assert_eq!(sim86.registers(), [1, 0, 0, 2, 0x9C40, 0, 0, 0]);
     assert_eq!(sim86.flags(), 0b0000_0000_1001_0001);
 }
+
+#[test]
+fn test() {
+    let sim86 = run_sim86("tests/sim/test.asm");
+    assert_eq!(sim86.registers(), [10, 0, 0, 0, 0, 0, 0, 0]);
+    assert_eq!(sim86.flags(), 0b0000_0000_0100_0100);
+}

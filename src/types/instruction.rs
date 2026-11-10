@@ -62,6 +62,7 @@ pub enum InstructionData {
         operand: Operand,
         port: Operand,
     },
+    CBW,
     HLT,
 }
 
@@ -122,6 +123,7 @@ impl Display for Instruction {
             }
             InstructionData::IN { operand, port, .. } => write!(f, "IN {},{}", operand, port),
             InstructionData::OUT { operand, port, .. } => write!(f, "OUT {},{}", port, operand),
+            InstructionData::CBW => write!(f, "CBW"),
             InstructionData::HLT => write!(f, "HLT"),
         }
     }

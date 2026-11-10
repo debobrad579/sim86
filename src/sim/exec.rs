@@ -135,6 +135,9 @@ impl Sim86 {
                     stdout().flush().unwrap();
                 }
             }
+            InstructionData::CBW => {
+                self.registers[0] = (self.registers[0] & 0x00FF) as u8 as i8 as i16 as u16;
+            }
             InstructionData::HLT => unreachable!(),
         }
     }

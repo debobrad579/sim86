@@ -4,8 +4,8 @@ main:
     %define newline 0x0A
     %define backspace 0x08
 
-    %define X 2
-    %define O 1
+    %define X 1
+    %define O -1
     %define Empty 0
 
     mov ax, 0x1000
@@ -30,9 +30,12 @@ main:
 
         in al, stdin
 
+        cmp al, 'q'
+        je halt
+
         out stdout, al
 
-        mov ah, 0
+        cbw
         mov di, ax
         sub di, '1'
 
@@ -47,7 +50,7 @@ main:
 
         call get_turn
 
-        mov [bx+di], dx
+        mov [bx+di], dl
 
         mov al, newline
         out stdout, al
@@ -56,8 +59,6 @@ main:
 
         jmp game_loop
 
-    hlt
-
     delete_game_loop_text:
         mov cx, 13
         delete_loop:
@@ -65,6 +66,11 @@ main:
             out stdout, al
             loop delete_loop
         jmp game_loop
+
+halt:
+    mov al, newline
+    out stdout, al
+    hlt
 
 get_turn:
     push di
@@ -76,7 +82,7 @@ get_turn:
         mov al, [bx+di]
 
         cmp al, 0
-        jne inc_cx
+        jne inc_cl
 
         get_turn_loop_end:
 
@@ -84,49 +90,23 @@ get_turn:
         cmp di, 9
         jne get_turn_loop
 
-    cmp cx, 0
+    test cl, 1
     je ret_X
+    jne ret_O
 
-    cmp cx, 1
-    je ret_O
-
-    cmp cx, 2
-    je ret_X
-
-    cmp cx, 3
-    je ret_O
-
-    cmp cx, 4
-    je ret_X
-
-    cmp cx, 5
-    je ret_O
-
-    cmp cx, 6
-    je ret_X
-
-    cmp cx, 7
-    je ret_O
-
-    cmp cx, 8
-    je ret_X
-
-    cmp cx, 9
-    je ret_O
-
-    inc_cx:
-        inc cx
+    inc_cl:
+        inc cl
         jmp get_turn_loop_end
 
     ret_X:
-        mov dx, X
+        mov dl, X
 
         pop cx
         pop di
         ret
 
     ret_O:
-        mov dx, O
+        mov dl, O
 
         pop cx
         pop di

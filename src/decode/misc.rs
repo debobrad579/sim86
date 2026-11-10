@@ -6,6 +6,13 @@ use crate::{
     },
 };
 
+pub fn cbw() -> Instruction {
+    Instruction {
+        data: InstructionData::CBW,
+        size: 1,
+    }
+}
+
 pub fn halt() -> Instruction {
     Instruction {
         data: InstructionData::HLT,
