@@ -109,6 +109,10 @@ impl Sim86 {
                             match key_event.code {
                                 KeyCode::Enter => break '\n' as u16,
                                 KeyCode::Backspace => break '\x08' as u16,
+                                KeyCode::Left => break 0x82,
+                                KeyCode::Down => break 0x81,
+                                KeyCode::Up => break 0x80,
+                                KeyCode::Right => break 0x83,
                                 KeyCode::Char(c) => break c as u16,
                                 _ => {}
                             }

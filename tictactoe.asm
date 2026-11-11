@@ -145,47 +145,66 @@ main:
                 hlt
             .no_quit:
 
+
             cmp al, 'h'
-            jne .no_left
-                cmp di, 0
-                je .no_left
-                cmp di, 3
-                je .no_left
-                cmp di, 6
-                je .no_left
-                call cursor_left
-                dec di
-            .no_left:
+            je .left
+            cmp al, 0x82
+            je .left
 
             cmp al, 'j'
-            jne .no_down
-                cmp di, 6
-                jge .no_down
-                call cursor_down
-                add di, 3
-            .no_down:
+            je .down
+            cmp al, 0x81
+            je .down
 
             cmp al, 'k'
-            jne .no_up
-                cmp di, 2
-                jle .no_up
-                call cursor_up
-                sub di, 3
-            .no_up:
+            je .up
+            cmp al, 0x80
+            je .up
 
             cmp al, 'l'
-            jne .no_right
-                cmp di, 2
-                je .no_right
-                cmp di, 5
-                je .no_right
-                cmp di, 8
-                je .no_right
-                call cursor_right
-                inc di
-            .no_right:
+            je .right
+            cmp al, 0x83
+            je .right
+
+            .no_input:
 
             jmp .input_loop
+
+            .left:
+                cmp di, 0
+                je .no_input
+                cmp di, 3
+                je .no_input
+                cmp di, 6
+                je .no_input
+                call cursor_left
+                dec di
+                jmp .input_loop
+
+            .down:
+                cmp di, 6
+                jge .no_input
+                call cursor_down
+                add di, 3
+                jmp .input_loop
+                
+            .up:
+                cmp di, 2
+                jle .no_input
+                call cursor_up
+                sub di, 3
+                jmp .input_loop
+
+            .right:
+                cmp di, 2
+                je .no_input
+                cmp di, 5
+                je .no_input
+                cmp di, 8
+                je .no_input
+                call cursor_right
+                inc di
+                jmp .input_loop
 
 gameover:
     cmp dl, X
