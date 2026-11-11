@@ -4,7 +4,7 @@ main:
     %define stdin 00h
     %define stdout 01h
     %define newline 0x0A
-    %define backspace 0x08
+    %define carriage_return 0x0D
 
     %define X 1
     %define O -1
@@ -17,7 +17,20 @@ main:
     mov ax, 0x2000
     mov ds, ax
 
+    mov al, newline
+    out stdout, al
+    call print_board
+
     .loop:
+        mov ax, 0x5B1B
+        out stdout, ax
+
+        mov ax, 0x4134
+        out stdout, ax
+
+        mov al, 0x0D
+        out stdout, al
+
         call get_result
 
         cmp dh, 1
@@ -32,9 +45,8 @@ main:
                 out stdout, ax
                 mov al, '!'
                 out stdout, al
-                mov al, newline
-                out stdout, al
-                hlt
+
+                jmp .gameover_end
             .not_X_wins:
 
             cmp dl, O
@@ -47,9 +59,8 @@ main:
                 out stdout, ax
                 mov al, '!'
                 out stdout, al
-                mov al, newline
-                out stdout, al
-                hlt
+
+                jmp .gameover_end
             .not_O_wins:
 
             mov ax, 'Ga'
@@ -64,10 +75,37 @@ main:
             out stdout, ax
             mov al, '!'
             out stdout, al
+
+            .gameover_end:
+            mov ax, '  '
+            out stdout, ax
+            mov ax, '  '
+            out stdout, ax
+            mov ax, '  '
+            out stdout, ax
             mov al, newline
             out stdout, al
+            
+            call print_board
             hlt
         .no_gameover:
+
+        call get_turn
+        cmp dl, X
+        je .X_turn
+
+        call min_value
+        mov di, bx
+        call make_move
+
+        mov al, newline
+        out stdout, al
+
+        call print_board
+
+        jmp .loop
+
+        .X_turn:
 
         mov ax, 'Mo'
         out stdout, ax
@@ -81,25 +119,6 @@ main:
         out stdout, ax
         mov ax, ': '
         out stdout, ax
-
-        call get_turn
-        cmp dl, O
-        je .O_turn
-
-        call max_value
-        mov al, dl
-        add al, '2'
-        out stdout, al
-        jmp .end_if
-
-        .O_turn:
-
-        call min_value
-        mov al, dl
-        add al, '2'
-        out stdout, al
-        
-        .end_if:
 
         in al, stdin
 
@@ -135,11 +154,11 @@ main:
         jmp .loop
 
         .delete_text:
-            mov cx, 13
-            .delete_loop:
-                mov al, backspace
-                out stdout, al
-                loop .delete_loop
+            mov al, newline
+            out stdout, al
+            call print_board
+            mov al, carriage_return
+            out stdout, al
             jmp .loop
 
 max_value:
@@ -150,7 +169,7 @@ max_value:
     cmp dh, 1
     je .return
 
-    mov al, O
+    mov al, -2
     mov di, 8
 
     .loop:
@@ -165,6 +184,7 @@ max_value:
         jle .continue
 
         mov al, dl
+        mov bx, di
 
         .continue:
         dec di
@@ -185,7 +205,7 @@ min_value:
     cmp dh, 1
     je .return
 
-    mov al, X
+    mov al, 2
     mov di, 8
 
     .loop:
@@ -200,6 +220,7 @@ min_value:
         jge .continue
 
         mov al, dl
+        mov bx, di
 
         .continue:
         dec di
