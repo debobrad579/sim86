@@ -92,9 +92,9 @@ main:
 
         call get_turn
         cmp dl, X
-        je .X_turn
+        je .play
 
-        call min_value
+        call minimax
         mov di, bx
         call make_move
 
@@ -105,7 +105,7 @@ main:
 
         jmp .loop
 
-        .X_turn:
+        .play:
 
         mov ax, 'Mo'
         out stdout, ax
@@ -161,6 +161,65 @@ main:
             out stdout, al
             jmp .loop
 
+minimax:
+    push ax
+    push di
+
+    call get_turn
+    cmp dl, O
+    je .O_preloop
+
+    mov al, -2
+    mov di, 8
+
+    .loop:
+        cmp [di], Empty
+        jne .continue
+        
+        call make_move
+        call min_value
+        call unmake_move
+
+        cmp dl, al
+        jle .continue
+
+        mov al, dl
+        mov bx, di
+
+        .continue:
+        dec di
+        jns .loop
+
+    jmp .return
+
+    .O_preloop:
+
+    mov al, 2
+    mov di, 8
+
+    .O_loop:
+        cmp [di], Empty
+        jne .O_continue
+        
+        call make_move
+        call max_value
+        call unmake_move
+
+        cmp dl, al
+        jge .O_continue
+
+        mov al, dl
+        mov bx, di
+
+        .O_continue:
+        dec di
+        jns .O_loop
+
+    .return:
+    pop di
+    pop ax
+    ret
+
 max_value:
     push ax
     push di
@@ -184,7 +243,6 @@ max_value:
         jle .continue
 
         mov al, dl
-        mov bx, di
 
         .continue:
         dec di
@@ -220,7 +278,6 @@ min_value:
         jge .continue
 
         mov al, dl
-        mov bx, di
 
         .continue:
         dec di
