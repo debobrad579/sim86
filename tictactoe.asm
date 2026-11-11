@@ -163,8 +163,27 @@ get_result:
         dec di
         jns .loop_vertical
 
-    .loop_diagonal:
-        ;todo
+    mov dl, [0]
+    cmp dl, Empty
+    je .continue_diagonal
+    cmp dl, [4]
+    jne .continue_diagonal
+    cmp dl, [8]
+    jne .continue_diagonal
+        mov dh, 1
+        jmp .return
+    .continue_diagonal:
+
+    mov dl, [2]
+    cmp dl, Empty
+    je .continue_to_full
+    cmp dl, [4]
+    jne .continue_to_full
+    cmp dl, [6]
+    jne .continue_to_full
+        mov dh, 1
+        jmp .return
+    .continue_to_full:
 
     xor cl, cl
     mov di, 8
