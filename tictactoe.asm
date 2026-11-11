@@ -1,3 +1,5 @@
+bits 16
+
 main:
     %define stdin 00h
     %define stdout 01h
@@ -80,6 +82,25 @@ main:
         mov ax, ': '
         out stdout, ax
 
+        call get_turn
+        cmp dl, O
+        je .O_turn
+
+        call max_value
+        mov al, dl
+        add al, '2'
+        out stdout, al
+        jmp .end_if
+
+        .O_turn:
+
+        call min_value
+        mov al, dl
+        add al, '2'
+        out stdout, al
+        
+        .end_if:
+
         in al, stdin
 
         cmp al, 'q'
@@ -104,9 +125,7 @@ main:
         cmp [di], 0
         jne .delete_text
 
-        call get_turn
-
-        mov [di], dl
+        call make_move
 
         mov al, newline
         out stdout, al
@@ -122,6 +141,85 @@ main:
                 out stdout, al
                 loop .delete_loop
             jmp .loop
+
+max_value:
+    push ax
+    push di
+
+    call get_result
+    cmp dh, 1
+    je .return
+
+    mov al, O
+    mov di, 8
+
+    .loop:
+        cmp [di], Empty
+        jne .continue
+        
+        call make_move
+        call min_value
+        call unmake_move
+
+        cmp dl, al
+        jle .continue
+
+        mov al, dl
+
+        .continue:
+        dec di
+        jns .loop
+
+    mov dl, al
+
+    .return:
+    pop di
+    pop ax
+    ret
+
+min_value:
+    push ax
+    push di
+
+    call get_result
+    cmp dh, 1
+    je .return
+
+    mov al, X
+    mov di, 8
+
+    .loop:
+        cmp [di], Empty
+        jne .continue
+        
+        call make_move
+        call max_value
+        call unmake_move
+
+        cmp dl, al
+        jge .continue
+
+        mov al, dl
+
+        .continue:
+        dec di
+        jns .loop
+
+    mov dl, al
+
+    .return:
+    pop di
+    pop ax
+    ret
+
+make_move:
+    call get_turn
+    mov [di], dl
+    ret
+    
+unmake_move:
+    mov [di], Empty
+    ret
 
 get_result:
     push di
