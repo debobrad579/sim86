@@ -24,12 +24,15 @@ main:
         out stdout, ax
         mov ax, ' a'
         out stdout, ax
-        mov ax, 's:'
+        mov ax, 's '
         out stdout, ax
-        mov al, ' '
-        out stdout, al
 
         in al, stdin
+
+        cmp al, 'q'
+        jne .no_play_quit
+            hlt
+        .no_play_quit:
 
         cmp al, 'X'
         je .play_as_X
@@ -41,89 +44,36 @@ main:
         cmp al, 'o'
         je .play_as_O
 
-        mov al, newline
+        mov al, carriage_return
         out stdout, al
         jmp .play_as_loop
         
     .play_as_X:
     mov [9], X
-    jmp .game
+    jmp .loop
     
     .play_as_O:
     mov [9], O
 
-    .game:
-    mov al, newline
-    out stdout, al
-    call print_board
-
     .loop:
+        mov al, newline
+        out stdout, al
+        call print_board
+
         mov ax, 0x5B1B
         out stdout, ax
 
         mov ax, 0x4134
         out stdout, ax
 
-        mov al, 0x0D
+        mov al, carriage_return
         out stdout, al
 
         call get_result
 
         cmp dh, 1
         jne .no_gameover
-            cmp dl, X
-            jne .not_X_wins
-                mov ax, 'X '
-                out stdout, ax
-                mov ax, 'Wi'
-                out stdout, ax
-                mov ax, 'ns'
-                out stdout, ax
-                mov al, '!'
-                out stdout, al
-
-                jmp .gameover_end
-            .not_X_wins:
-
-            cmp dl, O
-            jne .not_O_wins
-                mov ax, 'O '
-                out stdout, ax
-                mov ax, 'Wi'
-                out stdout, ax
-                mov ax, 'ns'
-                out stdout, ax
-                mov al, '!'
-                out stdout, al
-
-                jmp .gameover_end
-            .not_O_wins:
-
-            mov ax, 'Ga'
-            out stdout, ax
-            mov ax, 'me'
-            out stdout, ax
-            mov ax, ' D'
-            out stdout, ax
-            mov ax, 'ra'
-            out stdout, ax
-            mov ax, 'wn'
-            out stdout, ax
-            mov al, '!'
-            out stdout, al
-
-            .gameover_end:
-            mov ax, '  '
-            out stdout, ax
-            mov ax, '  '
-            out stdout, ax
-            mov ax, '  '
-            out stdout, ax
-            mov al, newline
-            out stdout, al
-            
-            call print_board
-            hlt
+            jmp gameover
         .no_gameover:
 
         call get_turn
@@ -140,75 +90,151 @@ main:
         out stdout, ax
         mov ax, '..'
         out stdout, ax
-        mov ax, '. '
-        out stdout, ax
+        mov al, '.'
+        out stdout, al
+        mov al, newline
+        out stdout, al
 
         call minimax
         mov di, bx
         call make_move
 
-        mov al, newline
-        out stdout, al
-
-        call print_board
-
+        call cursor_up
         jmp .loop
 
         .play:
 
-        mov ax, 'Mo'
+        mov ax, 'Yo'
         out stdout, ax
-        mov ax, 've'
+        mov ax, 'ur'
         out stdout, ax
-        mov ax, ' ('
+        mov ax, ' T'
         out stdout, ax
-        mov ax, '1-'
+        mov ax, 'ur'
         out stdout, ax
-        mov ax, '9)'
-        out stdout, ax
-        mov ax, ': '
-        out stdout, ax
-
-        in al, stdin
-
-        cmp al, 'q'
-        jne .no_quit
-            mov al, newline
-            out stdout, al
-            hlt
-        .no_quit:
-
+        mov al, 'n'
         out stdout, al
-
-        cbw
-        mov di, ax
-        sub di, '1'
-
-        cmp di, 0
-        jl .delete_text
-
-        cmp di, 8
-        jg .delete_text
-
-        cmp [di], 0
-        jne .delete_text
-
-        call make_move
-
+        mov ax, '  '
+        out stdout, ax
         mov al, newline
         out stdout, al
 
-        call print_board
+        mov di, 0
+        
+        .input_loop:
+            in al, stdin
 
-        jmp .loop
+            cmp al, newline
+            jne .no_enter
+                cmp di, 3
+                jl .finish_enter
+                    call cursor_up
+                    cmp di, 6
+                    jl .finish_enter
+                        call cursor_up
+                .finish_enter:
+                call make_move
+                call cursor_up
+                jmp .loop
+            .no_enter:
 
-        .delete_text:
-            mov al, newline
-            out stdout, al
-            call print_board
-            mov al, carriage_return
-            out stdout, al
-            jmp .loop
+            cmp al, 'q'
+            jne .no_quit
+                mov al, newline
+                out stdout, al
+                hlt
+            .no_quit:
+
+            cmp al, 'h'
+            jne .no_left
+                cmp di, 0
+                je .no_left
+                cmp di, 3
+                je .no_left
+                cmp di, 6
+                je .no_left
+                call cursor_left
+                dec di
+            .no_left:
+
+            cmp al, 'j'
+            jne .no_down
+                cmp di, 6
+                jge .no_down
+                call cursor_down
+                add di, 3
+            .no_down:
+
+            cmp al, 'k'
+            jne .no_up
+                cmp di, 2
+                jle .no_up
+                call cursor_up
+                sub di, 3
+            .no_up:
+
+            cmp al, 'l'
+            jne .no_right
+                cmp di, 2
+                je .no_right
+                cmp di, 5
+                je .no_right
+                cmp di, 8
+                je .no_right
+                call cursor_right
+                inc di
+            .no_right:
+
+            jmp .input_loop
+
+gameover:
+    cmp dl, X
+    jne .not_X_wins
+        mov ax, 'X '
+        out stdout, ax
+        mov ax, 'Wi'
+        out stdout, ax
+        mov ax, 'ns'
+        out stdout, ax
+        mov al, '!'
+        out stdout, al
+        jmp .end
+    .not_X_wins:
+    cmp dl, O
+    jne .not_O_wins
+        mov ax, 'O '
+        out stdout, ax
+        mov ax, 'Wi'
+        out stdout, ax
+        mov ax, 'ns'
+        out stdout, ax
+        mov al, '!'
+        out stdout, al
+        jmp .end
+    .not_O_wins:
+    mov ax, 'Ga'
+    out stdout, ax
+    mov ax, 'me'
+    out stdout, ax
+    mov ax, ' D'
+    out stdout, ax
+    mov ax, 'ra'
+    out stdout, ax
+    mov ax, 'wn'
+    out stdout, ax
+    mov al, '!'
+    out stdout, al
+
+    .end:
+    mov ax, '  '
+    out stdout, ax
+    mov ax, '  '
+    out stdout, ax
+    mov al, newline
+    out stdout, al
+
+    call print_board
+    hlt
 
 minimax:
     push ax
@@ -476,6 +502,50 @@ get_turn:
         pop cx
         pop di
         ret
+
+cursor_left:
+    push ax
+
+    mov ax, 0x5B1B
+    out stdout, ax
+    mov ax, 0x4431
+    out stdout, ax
+
+    pop ax
+    ret
+
+cursor_down:
+    push ax
+    
+    mov ax, 0x5B1B
+    out stdout, ax
+    mov ax, 0x4231
+    out stdout, ax
+
+    pop ax
+    ret
+
+cursor_up:
+    push ax
+
+    mov ax, 0x5B1B
+    out stdout, ax
+    mov ax, 0x4131
+    out stdout, ax
+
+    pop ax
+    ret
+
+cursor_right:
+    push ax
+
+    mov ax, 0x5B1B
+    out stdout, ax
+    mov ax, 0x4331
+    out stdout, ax
+
+    pop ax
+    ret
 
 print_board:
     push ax
