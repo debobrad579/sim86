@@ -67,8 +67,9 @@ impl Sim86 {
     }
 
     pub(super) fn get_memory_address(&self, memory: &Memory) -> usize {
-        (self.get_memory_segment_value(memory) << 4) as usize
-            + self.get_effective_address(&memory.address) as usize
+        (((self.get_memory_segment_value(memory) as usize) << 4)
+            + self.get_effective_address(&memory.address) as usize)
+            & 0xFFFFF
     }
 
     pub(super) fn get_memory_segment_value(&self, memory: &Memory) -> u16 {

@@ -9,7 +9,8 @@ use crate::{
 impl Sim86 {
     pub fn run(&mut self, print: bool) {
         loop {
-            let instruction = Instruction::from(&self.memory[self.ip as usize..]);
+            let pc = (((self.segment_registers[0b01] as usize) << 4) + self.ip as usize) & 0xFFFFF;
+            let instruction = Instruction::from(&self.memory[pc..]);
 
             self.ip += instruction.size;
 

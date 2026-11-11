@@ -10,11 +10,17 @@ main:
 
     mov ax, 0x1000
     mov ss, ax
-    mov sp, 0xFA00
+    mov sp, 0xFF00
 
-    mov bx, 0x1000
+    mov ax, 0x2000
+    mov ds, ax
 
     game_loop:
+        call get_result
+
+        cmp dh, 1
+        je gameover
+
         mov ax, 'Mo'
         out stdout, ax
         mov ax, 've'
@@ -45,12 +51,12 @@ main:
         cmp di, 8
         jg delete_game_loop_text
 
-        cmp [bx+di], 0
+        cmp [di], 0
         jne delete_game_loop_text
 
         call get_turn
 
-        mov [bx+di], dl
+        mov [di], dl
 
         mov al, newline
         out stdout, al
@@ -58,6 +64,58 @@ main:
         call print_board
 
         jmp game_loop
+
+    halt:
+        mov al, newline
+        out stdout, al
+        hlt
+
+    gameover:
+        cmp dl, X
+        je X_wins
+
+        cmp dl, O
+        je O_wins
+
+        cmp dl, Empty
+        je game_drawn
+
+    X_wins:
+        mov ax, 'X '
+        out stdout, ax
+        mov ax, 'Wi'
+        out stdout, ax
+        mov ax, 'ns'
+        out stdout, ax
+        mov al, '!'
+        out stdout, al
+        hlt
+
+    O_wins:
+        mov ax, 'O '
+        out stdout, ax
+        mov ax, 'Wi'
+        out stdout, ax
+        mov ax, 'ns'
+        out stdout, ax
+        mov al, '!'
+        out stdout, al
+        hlt
+
+    game_drawn:
+        mov ax, 'Ga'
+        out stdout, ax
+        mov ax, 'me'
+        out stdout, ax
+        mov ax, ' D'
+        out stdout, ax
+        mov ax, 'ra'
+        out stdout, ax
+        mov ax, 'wn'
+        out stdout, ax
+        mov al, '!'
+        out stdout, al
+        hlt
 
     delete_game_loop_text:
         mov cx, 13
@@ -67,19 +125,20 @@ main:
             loop delete_loop
         jmp game_loop
 
-halt:
-    mov al, newline
-    out stdout, al
-    hlt
+get_result:
+    mov dl, Empty
+    mov dh, 0
+    ret
 
 get_turn:
     push di
     push cx
 
     mov di, 0
+    xor cl, cl
 
     get_turn_loop:
-        mov al, [bx+di]
+        mov al, [di]
 
         cmp al, 0
         jne inc_cl
@@ -119,7 +178,7 @@ print_board:
     mov di, 0
 
     print_loop_start:
-        mov al, [bx+di]
+        mov al, [di]
 
         cmp al, Empty
         je print_empty
