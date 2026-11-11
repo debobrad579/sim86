@@ -15,11 +15,51 @@ main:
     mov ax, 0x2000
     mov ds, ax
 
-    game_loop:
+    .loop:
         call get_result
 
         cmp dh, 1
-        je gameover
+        jne .no_gameover
+            cmp dl, X
+            jne .not_X_wins
+                mov ax, 'X '
+                out stdout, ax
+                mov ax, 'Wi'
+                out stdout, ax
+                mov ax, 'ns'
+                out stdout, ax
+                mov al, '!'
+                out stdout, al
+                hlt
+            .not_X_wins:
+
+            cmp dl, O
+            jne .not_O_wins
+                mov ax, 'X '
+                out stdout, ax
+                mov ax, 'Wi'
+                out stdout, ax
+                mov ax, 'ns'
+                out stdout, ax
+                mov al, '!'
+                out stdout, al
+                hlt
+            .not_O_wins:
+
+            mov ax, 'Ga'
+            out stdout, ax
+            mov ax, 'me'
+            out stdout, ax
+            mov ax, ' D'
+            out stdout, ax
+            mov ax, 'ra'
+            out stdout, ax
+            mov ax, 'wn'
+            out stdout, ax
+            mov al, '!'
+            out stdout, al
+            hlt
+        .no_gameover:
 
         mov ax, 'Mo'
         out stdout, ax
@@ -37,7 +77,11 @@ main:
         in al, stdin
 
         cmp al, 'q'
-        je halt
+        jne .no_quit
+            mov al, newline
+            out stdout, al
+            hlt
+        .no_quit:
 
         out stdout, al
 
@@ -46,13 +90,13 @@ main:
         sub di, '1'
 
         cmp di, 0
-        jl delete_game_loop_text
+        jl .delete_text
 
         cmp di, 8
-        jg delete_game_loop_text
+        jg .delete_text
 
         cmp [di], 0
-        jne delete_game_loop_text
+        jne .delete_text
 
         call get_turn
 
@@ -63,67 +107,15 @@ main:
 
         call print_board
 
-        jmp game_loop
+        jmp .loop
 
-    halt:
-        mov al, newline
-        out stdout, al
-        hlt
-
-    gameover:
-        cmp dl, X
-        je X_wins
-
-        cmp dl, O
-        je O_wins
-
-        cmp dl, Empty
-        je game_drawn
-
-    X_wins:
-        mov ax, 'X '
-        out stdout, ax
-        mov ax, 'Wi'
-        out stdout, ax
-        mov ax, 'ns'
-        out stdout, ax
-        mov al, '!'
-        out stdout, al
-        hlt
-
-    O_wins:
-        mov ax, 'O '
-        out stdout, ax
-        mov ax, 'Wi'
-        out stdout, ax
-        mov ax, 'ns'
-        out stdout, ax
-        mov al, '!'
-        out stdout, al
-        hlt
-
-    game_drawn:
-        mov ax, 'Ga'
-        out stdout, ax
-        mov ax, 'me'
-        out stdout, ax
-        mov ax, ' D'
-        out stdout, ax
-        mov ax, 'ra'
-        out stdout, ax
-        mov ax, 'wn'
-        out stdout, ax
-        mov al, '!'
-        out stdout, al
-        hlt
-
-    delete_game_loop_text:
-        mov cx, 13
-        delete_loop:
-            mov al, backspace
-            out stdout, al
-            loop delete_loop
-        jmp game_loop
+        .delete_text:
+            mov cx, 13
+            .delete_loop:
+                mov al, backspace
+                out stdout, al
+                loop .delete_loop
+            jmp .loop
 
 get_result:
     mov dl, Empty
@@ -137,34 +129,30 @@ get_turn:
     mov di, 0
     xor cl, cl
 
-    get_turn_loop:
+    .loop:
         mov al, [di]
 
         cmp al, 0
-        jne inc_cl
-
-        get_turn_loop_end:
+        je .no_inc_cl
+            inc cl
+        .no_inc_cl:
 
         inc di
         cmp di, 9
-        jne get_turn_loop
+        jne .loop
 
     test cl, 1
-    je ret_X
-    jne ret_O
+    je .ret_X
+    jne .ret_O
 
-    inc_cl:
-        inc cl
-        jmp get_turn_loop_end
-
-    ret_X:
+    .ret_X:
         mov dl, X
 
         pop cx
         pop di
         ret
 
-    ret_O:
+    .ret_O:
         mov dl, O
 
         pop cx
@@ -177,55 +165,47 @@ print_board:
 
     mov di, 0
 
-    print_loop_start:
+    .loop:
         mov al, [di]
 
         cmp al, Empty
-        je print_empty
+        jne .no_print_empty
+            mov al, '-'
+            out stdout, al
+        .no_print_empty:
 
         cmp al, X
-        je print_X
+        jne .no_print_X
+            mov al, 'X'
+            out stdout, al
+        .no_print_X:
 
         cmp al, O
-        je print_O
-
-        print_loop_mid:
+        jne .no_print_O
+            mov al, 'O'
+            out stdout, al
+        .no_print_O:
 
         cmp di, 2
-        je print_newline
+        je .print_newline
 
         cmp di, 5
-        je print_newline
+        je .print_newline
 
         cmp di, 8
-        je print_newline
+        je .print_newline
 
-        print_loop_end:
+        .loop_end:
 
         inc di
         cmp di, 9
-        jne print_loop_start
+        jne .loop
 
     pop di
     pop ax
     ret
 
-    print_empty:
-        mov al, '-'
-        out stdout, al
-        jmp print_loop_mid
-
-    print_X:
-        mov al, 'X'
-        out stdout, al
-        jmp print_loop_mid
-
-    print_O:
-        mov al, 'O'
-        out stdout, al
-        jmp print_loop_mid
-
-    print_newline:
+    .print_newline:
         mov al, newline
         out stdout, al
-        jmp print_loop_end
+        jmp .loop_end
