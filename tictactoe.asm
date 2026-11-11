@@ -17,6 +17,42 @@ main:
     mov ax, 0x2000
     mov ds, ax
 
+    .play_as_loop:
+        mov ax, 'Pl'
+        out stdout, ax
+        mov ax, 'ay'
+        out stdout, ax
+        mov ax, ' a'
+        out stdout, ax
+        mov ax, 's:'
+        out stdout, ax
+        mov al, ' '
+        out stdout, al
+
+        in al, stdin
+
+        cmp al, 'X'
+        je .play_as_X
+        cmp al, 'x'
+        je .play_as_X
+
+        cmp al, 'O'
+        je .play_as_O
+        cmp al, 'o'
+        je .play_as_O
+
+        mov al, newline
+        out stdout, al
+        jmp .play_as_loop
+        
+    .play_as_X:
+    mov [9], X
+    jmp .game
+    
+    .play_as_O:
+    mov [9], O
+
+    .game:
     mov al, newline
     out stdout, al
     call print_board
@@ -91,8 +127,21 @@ main:
         .no_gameover:
 
         call get_turn
-        cmp dl, X
+        cmp dl, [9]
         je .play
+
+        mov ax, 'Th'
+        out stdout, ax
+        mov ax, 'in'
+        out stdout, ax
+        mov ax, 'ki'
+        out stdout, ax
+        mov ax, 'ng'
+        out stdout, ax
+        mov ax, '..'
+        out stdout, ax
+        mov ax, '. '
+        out stdout, ax
 
         call minimax
         mov di, bx
