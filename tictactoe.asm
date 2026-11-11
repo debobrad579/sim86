@@ -10,7 +10,7 @@ main:
 
     mov ax, 0x1000
     mov ss, ax
-    mov sp, 0xFF00
+    mov sp, 0xFFFF
 
     mov ax, 0x2000
     mov ds, ax
@@ -30,18 +30,22 @@ main:
                 out stdout, ax
                 mov al, '!'
                 out stdout, al
+                mov al, newline
+                out stdout, al
                 hlt
             .not_X_wins:
 
             cmp dl, O
             jne .not_O_wins
-                mov ax, 'X '
+                mov ax, 'O '
                 out stdout, ax
                 mov ax, 'Wi'
                 out stdout, ax
                 mov ax, 'ns'
                 out stdout, ax
                 mov al, '!'
+                out stdout, al
+                mov al, newline
                 out stdout, al
                 hlt
             .not_O_wins:
@@ -57,6 +61,8 @@ main:
             mov ax, 'wn'
             out stdout, ax
             mov al, '!'
+            out stdout, al
+            mov al, newline
             out stdout, al
             hlt
         .no_gameover:
@@ -118,28 +124,96 @@ main:
             jmp .loop
 
 get_result:
-    mov dl, Empty
-    mov dh, 0
-    ret
+    push di
+    push cx
 
+    xor dh, dh
+
+    mov di, 8
+
+    .loop_horizontal:
+        mov dl, [di]
+        cmp dl, Empty
+        je .continue_horizontal
+        cmp dl, [di-1]
+        jne .continue_horizontal
+        cmp dl, [di-2]
+        jne .continue_horizontal
+            mov dh, 1
+            jmp .return
+        .continue_horizontal:
+
+        sub di, 3
+        jns .loop_horizontal
+
+    mov di, 2
+
+    .loop_vertical:
+        mov dl, [di]
+        cmp dl, Empty
+        je .continue_vertical
+        cmp dl, [di+3]
+        jne .continue_vertical
+        cmp dl, [di+6]
+        jne .continue_vertical
+            mov dh, 1
+            jmp .return
+        .continue_vertical:
+
+        dec di
+        jns .loop_vertical
+
+    .loop_diagonal:
+        ;todo
+
+    xor cl, cl
+    mov di, 8
+
+    .loop_full:
+        mov dl, [di]
+
+        cmp dl, Empty
+        je .no_inc_cl
+            inc cl
+        .no_inc_cl:
+        
+        dec di
+        jns .loop_full
+
+    cmp cl, 9
+    jne .game_ongoing
+
+    mov dl, Empty
+    mov dh, 1
+    jmp .return
+
+    .game_ongoing:
+    
+    mov dl, Empty
+        
+    .return:
+
+    pop cx
+    pop di
+    ret
+    
 get_turn:
     push di
     push cx
 
-    mov di, 0
     xor cl, cl
+    mov di, 8
 
     .loop:
-        mov al, [di]
+        mov dl, [di]
 
-        cmp al, 0
+        cmp dl, Empty
         je .no_inc_cl
             inc cl
         .no_inc_cl:
 
-        inc di
-        cmp di, 9
-        jne .loop
+        dec di
+        jns .loop
 
     test cl, 1
     je .ret_X
