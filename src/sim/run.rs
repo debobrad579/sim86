@@ -2,15 +2,16 @@ use std::fs::File;
 use std::io::Write;
 
 use crate::{
-    sim::Sim86,
+    sim::{Sim86, utils::get_memory_address},
     types::instruction::{Instruction, InstructionData},
 };
 
 impl Sim86 {
     pub fn run(&mut self, print: bool) {
         loop {
-            let pc = (((self.segment_registers[0b01] as usize) << 4) + self.ip as usize) & 0xFFFFF;
-            let instruction = Instruction::from(&self.memory[pc..]);
+            let instruction = Instruction::from(
+                &self.memory[get_memory_address(self.segment_registers[0b01], self.ip)..],
+            );
 
             self.ip += instruction.size;
 

@@ -1,5 +1,5 @@
 use crate::{
-    decode::{alu, io, jumps, misc, mov, shift_rotate, stack, xchg},
+    decode::{alu, io, jumps, load, misc, mov, shift_rotate, stack, xchg},
     types::{
         instruction::{AluBinaryOpCode, Instruction},
         operand::SegmentRegister,
@@ -31,10 +31,20 @@ impl From<&[u8]> for Instruction {
             0xA0..=0xA3 => mov::memory_to_from_accumulator(bytes, segment_override),
             0x86 | 0x87 => xchg::rm_with_register(bytes, segment_override),
             0x90..=0x97 => xchg::register_with_accumulator(bytes),
+            0xD7 => misc::xlat(segment_override),
+            0x8D => load::effective_address(bytes),
+            0xC5 => load::pointer_to_ds(bytes),
+            0xC4 => load::pointer_to_es(bytes),
+            0x9F => load::ah_with_flags(),
+            0x9E => load::ah_into_flags(),
             0xFF if (bytes[1] >> 3) & 0b111 == 0b110 => stack::push_rm(bytes, segment_override),
             0x50..=0x57 => stack::push_reg(bytes),
             0x06 | 0x0E | 0x16 | 0x1E => stack::push_sr(bytes),
             0x8F if (bytes[1] >> 3) & 0b111 == 0b000 => stack::pop_rm(bytes, segment_override),
+            0x58..=0x5F => stack::pop_reg(bytes),
+            0x07 | 0x0F | 0x17 | 0x1F => stack::pop_sr(bytes),
+            0x9C => stack::pushf(),
+            0x9D => stack::popf(),
             0xE8 => stack::call_direct_within_segment(bytes),
             0xFF if (bytes[1] >> 3) & 0b111 == 0b010 => {
                 stack::call_indirect_within_segment(bytes, segment_override)
@@ -56,9 +66,6 @@ impl From<&[u8]> for Instruction {
             0xFF if (bytes[1] >> 3) & 0b111 == 0b101 => {
                 jumps::indirect_intersegment(bytes, segment_override)
             }
-            0x58..=0x5F => stack::pop_reg(bytes),
-            0x07 | 0x0F | 0x17 | 0x1F => stack::pop_sr(bytes),
-            0x8D => misc::load_effective_address(bytes),
             0x80..=0x83 => alu::immediate_to_rm(bytes, segment_override, None),
             0x84 | 0x85 => {
                 alu::rm_with_reg_to_either(bytes, segment_override, Some(AluBinaryOpCode::TEST))

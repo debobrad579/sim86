@@ -1,5 +1,8 @@
 use crate::{
-    sim::Sim86,
+    sim::{
+        Sim86,
+        utils::{get_default_segment, get_memory_address},
+    },
     types::{
         operand::{EffectiveAddressCalculation, Immediate, Memory, Operand, Register},
         width::Width,
@@ -67,23 +70,16 @@ impl Sim86 {
     }
 
     pub(super) fn get_memory_address(&self, memory: &Memory) -> usize {
-        (((self.get_memory_segment_value(memory) as usize) << 4)
-            + self.get_effective_address(&memory.address) as usize)
-            & 0xFFFFF
+        get_memory_address(
+            self.get_memory_segment_value(memory),
+            self.get_effective_address(&memory.address),
+        )
     }
 
     pub(super) fn get_memory_segment_value(&self, memory: &Memory) -> u16 {
         self.segment_registers[match &memory.segment_override {
             Some(segment_prefix) => segment_prefix.value(),
-            None => {
-                if let EffectiveAddressCalculation::Calculation { ref base, .. } = memory.address
-                    && base.value == 0b101
-                {
-                    0b10
-                } else {
-                    0b11
-                }
-            }
+            None => get_default_segment(&memory.address).value(),
         } as usize]
     }
 

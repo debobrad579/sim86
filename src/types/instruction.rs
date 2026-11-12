@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use crate::types::{
     jump::{ConditionalJumpOpCode, Jump},
-    operand::{EffectiveAddressCalculation, Operand},
+    operand::{EffectiveAddressCalculation, Operand, SegmentRegister},
     width::Width,
 };
 
@@ -28,6 +28,35 @@ pub enum InstructionData {
     POP {
         operand: Operand,
     },
+    IN {
+        width: Width,
+        operand: Operand,
+        port: Operand,
+    },
+    OUT {
+        width: Width,
+        operand: Operand,
+        port: Operand,
+    },
+    XLAT {
+        segment_override: Option<SegmentRegister>,
+    },
+    LEA {
+        operand: Operand,
+        eac: EffectiveAddressCalculation,
+    },
+    LDS {
+        operand: Operand,
+        eac: EffectiveAddressCalculation,
+    },
+    LES {
+        operand: Operand,
+        eac: EffectiveAddressCalculation,
+    },
+    LAHF,
+    SAHF,
+    PUSHF,
+    POPF,
     CALL(Jump),
     RET(u16),
     RETF(u16),
@@ -35,10 +64,6 @@ pub enum InstructionData {
     ConditionalJump {
         op_code: ConditionalJumpOpCode,
         target: i8,
-    },
-    LEA {
-        operand: Operand,
-        eac: EffectiveAddressCalculation,
     },
     AluBinary {
         op_code: AluBinaryOpCode,
@@ -56,16 +81,6 @@ pub enum InstructionData {
         width: Width,
         operand: Operand,
         amount: Operand,
-    },
-    IN {
-        width: Width,
-        operand: Operand,
-        port: Operand,
-    },
-    OUT {
-        width: Width,
-        operand: Operand,
-        port: Operand,
     },
     CBW,
     HLT,
@@ -86,7 +101,20 @@ impl Display for Instruction {
             } => write!(f, "XCHG {} {},{}", width, destination, source),
             InstructionData::PUSH { operand } => write!(f, "PUSH {}", operand),
             InstructionData::POP { operand } => write!(f, "POP {}", operand),
+            InstructionData::IN { operand, port, .. } => write!(f, "IN {},{}", operand, port),
+            InstructionData::OUT { operand, port, .. } => write!(f, "OUT {},{}", port, operand),
             InstructionData::CALL(jump) => write!(f, "CALL {}", jump),
+            InstructionData::XLAT { segment_override } => match segment_override {
+                Some(segment_override) => write!(f, "{} XLAT", segment_override),
+                None => write!(f, "XLAT"),
+            },
+            InstructionData::LEA { operand, eac } => write!(f, "LEA {},[{}]", operand, eac),
+            InstructionData::LDS { operand, eac } => write!(f, "LDS {},[{}]", operand, eac),
+            InstructionData::LES { operand, eac } => write!(f, "LES {},[{}]", operand, eac),
+            InstructionData::LAHF => write!(f, "LAHF"),
+            InstructionData::SAHF => write!(f, "SAHF"),
+            InstructionData::PUSHF => write!(f, "PUSHF"),
+            InstructionData::POPF => write!(f, "POPF"),
             InstructionData::RET(immediate) => {
                 if *immediate == 0 {
                     write!(f, "RET")
@@ -101,7 +129,6 @@ impl Display for Instruction {
                     write!(f, "RETF {}", immediate)
                 }
             }
-            InstructionData::LEA { operand, eac } => write!(f, "LEA {},[{}]", operand, eac),
             InstructionData::AluBinary {
                 op_code,
                 width,
@@ -129,8 +156,6 @@ impl Display for Instruction {
             InstructionData::ConditionalJump { op_code, target } => {
                 write!(f, "{} ${:+}", op_code, target + 2)
             }
-            InstructionData::IN { operand, port, .. } => write!(f, "IN {},{}", operand, port),
-            InstructionData::OUT { operand, port, .. } => write!(f, "OUT {},{}", port, operand),
             InstructionData::CBW => write!(f, "CBW"),
             InstructionData::HLT => write!(f, "HLT"),
         }

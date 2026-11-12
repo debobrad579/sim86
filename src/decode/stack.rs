@@ -68,6 +68,20 @@ pub fn pop_sr(bytes: &[u8]) -> Instruction {
     }
 }
 
+pub fn pushf() -> Instruction {
+    Instruction {
+        data: InstructionData::PUSHF,
+        size: 1,
+    }
+}
+
+pub fn popf() -> Instruction {
+    Instruction {
+        data: InstructionData::POPF,
+        size: 1,
+    }
+}
+
 pub fn call_direct_within_segment(bytes: &[u8]) -> Instruction {
     Instruction {
         data: InstructionData::CALL(Jump::DirectWithinSegment(u16::from_le_bytes([

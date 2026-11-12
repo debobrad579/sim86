@@ -14,6 +14,9 @@ pop di
 pop si
 pop ds
 
+pushf
+popf
+
 call [39201]
 call [bp - 100]
 call sp

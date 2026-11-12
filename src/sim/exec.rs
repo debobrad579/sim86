@@ -1,9 +1,13 @@
 use std::io::{Write, stdout};
 
 use crate::{
-    sim::{Sim86, utils::get_sp_memory_operand},
+    sim::{
+        Sim86,
+        utils::{get_default_segment, get_memory_address, get_sp_memory_operand},
+    },
     types::{
         instruction::{Instruction, InstructionData},
+        operand::Register,
         width::Width,
     },
 };
@@ -44,6 +48,14 @@ impl Sim86 {
                 );
                 self.registers[0b100] = self.registers[0b100].wrapping_add(2);
             }
+            InstructionData::PUSHF => {
+                self.registers[0b100] = self.registers[0b100].wrapping_sub(2);
+                self.set_value(get_sp_memory_operand(), self.flags, &Width::Word);
+            }
+            InstructionData::POPF => {
+                self.flags = self.get_value(&get_sp_memory_operand(), &Width::Word);
+                self.registers[0b100] = self.registers[0b100].wrapping_add(2);
+            }
             InstructionData::CALL(jump) => {
                 let return_ip = self.ip;
                 let old_cs = self.segment_registers[0b01];
@@ -80,9 +92,6 @@ impl Sim86 {
                 if let Some(cs) = cs {
                     self.segment_registers[0b01] = cs;
                 }
-            }
-            InstructionData::LEA { operand, eac } => {
-                self.set_value(operand, self.get_effective_address(&eac), &Width::Word)
             }
             InstructionData::AluBinary {
                 op_code,
@@ -153,6 +162,73 @@ impl Sim86 {
                 self.registers[0] = (self.registers[0] & 0x00FF) as u8 as i8 as i16 as u16;
             }
             InstructionData::HLT => unreachable!(),
+            InstructionData::XLAT { segment_override } => {
+                let segment = self.segment_registers[match segment_override {
+                    Some(segment_override) => segment_override.value(),
+                    None => 0b11,
+                } as usize];
+
+                let effective_address = self
+                    .get_register(&Register {
+                        width: Width::Word,
+                        value: 0b011,
+                    })
+                    .wrapping_add(self.get_register(&Register {
+                        width: Width::Byte,
+                        value: 0b000,
+                    }));
+
+                self.set_register(
+                    Register {
+                        width: Width::Byte,
+                        value: 0b000,
+                    },
+                    self.memory[get_memory_address(segment, effective_address)] as u16,
+                );
+            }
+            InstructionData::LEA { operand, eac } => {
+                self.set_value(operand, self.get_effective_address(&eac), &Width::Word)
+            }
+            InstructionData::LDS { operand, eac } => {
+                let address = get_memory_address(
+                    self.segment_registers[get_default_segment(&eac).value() as usize],
+                    self.get_effective_address(&eac),
+                );
+
+                self.set_value(
+                    operand,
+                    u16::from_le_bytes([self.memory[address], self.memory[address + 1]]),
+                    &Width::Word,
+                );
+
+                self.segment_registers[0b11] =
+                    u16::from_le_bytes([self.memory[address + 2], self.memory[address + 3]]);
+            }
+            InstructionData::LES { operand, eac } => {
+                let address = get_memory_address(
+                    self.segment_registers[get_default_segment(&eac).value() as usize],
+                    self.get_effective_address(&eac),
+                );
+
+                self.set_value(
+                    operand,
+                    u16::from_le_bytes([self.memory[address], self.memory[address + 1]]),
+                    &Width::Word,
+                );
+
+                self.segment_registers[0b00] =
+                    u16::from_le_bytes([self.memory[address + 2], self.memory[address + 3]]);
+            }
+            InstructionData::LAHF => {
+                self.set_register(
+                    Register {
+                        width: Width::Byte,
+                        value: 0b100,
+                    },
+                    self.flags & 0x00FF,
+                );
+            }
+            InstructionData::SAHF => self.flags = (self.flags & 0xFF00) | (self.registers[0] >> 8),
         }
     }
 }

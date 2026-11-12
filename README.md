@@ -44,13 +44,13 @@ cargo run --release --bin sim -- tictactoe.asm
 
 | Category       | Instructions |
 |----------------|--------------|
-| Data transfer  | `mov`, `xchg` |
-| Stack          | `push`, `pop`, `call`, `ret`, `retf` |
+| Data transfer  | `mov`, `xchg`, `xlat`, `lea`, `lds`, `les`, `lahf`, `sahf` |
+| Stack          | `push`, `pop`, `pushf`, `popf`, `call`, `ret`, `retf` |
 | Arithmetic     | `add`, `adc`, `sub`, `sbb`, `cmp`, `inc`, `dec`, `neg` |
 | Logic          | `and`, `or`, `xor`, `not`, `test` |
 | Control flow   | `jmp`, `loop`, `loopz`, `loopnz`, `jcxz`, and all conditional jumps |
 | I/O            | `in`, `out` (simulated ports: `00h` = stdin, `01h` = stdout) |
-| Misc           | `hlt`, `lea`, `cbw` |
+| Misc           | `hlt`, `cbw` |
 
 ## Acknowledgements
 

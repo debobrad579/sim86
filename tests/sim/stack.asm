@@ -6,6 +6,10 @@ main:
 
 	call func
 
+	pushf
+	test ax, bx
+	popf
+
 	hlt
 
 func:

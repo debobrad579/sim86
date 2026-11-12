@@ -134,3 +134,9 @@ fn xchg() {
     let sim86 = run_sim86("tests/sim/xchg.asm");
     assert_eq!(sim86.registers(), [40, 20, 10, 30, 0, 0, 0, 0]);
 }
+
+#[test]
+fn xlat() {
+    let sim86 = run_sim86("tests/sim/xlat.asm");
+    assert_eq!(sim86.registers(), [0x1055, 0, 0, 0x0200, 0, 0, 0, 0]);
+}

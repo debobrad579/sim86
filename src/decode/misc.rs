@@ -1,10 +1,14 @@
-use crate::{
-    decode::memory::{ModRMType, decode_modrm},
-    types::{
-        instruction::{Instruction, InstructionData},
-        operand::Operand,
-    },
+use crate::types::{
+    instruction::{Instruction, InstructionData},
+    operand::SegmentRegister,
 };
+
+pub fn xlat(segment_override: Option<SegmentRegister>) -> Instruction {
+    Instruction {
+        data: InstructionData::XLAT { segment_override },
+        size: 1,
+    }
+}
 
 pub fn cbw() -> Instruction {
     Instruction {
@@ -17,22 +21,5 @@ pub fn halt() -> Instruction {
     Instruction {
         data: InstructionData::HLT,
         size: 1,
-    }
-}
-
-pub fn load_effective_address(bytes: &[u8]) -> Instruction {
-    let mod_rm = decode_modrm(bytes, ModRMType::Register, None);
-
-    let eac = match mod_rm.rm {
-        Operand::Memory(memory) => memory.address,
-        _ => unreachable!("second LEA operand must be effective address calculation"),
-    };
-
-    Instruction {
-        data: InstructionData::LEA {
-            operand: mod_rm.reg,
-            eac,
-        },
-        size: mod_rm.size,
     }
 }

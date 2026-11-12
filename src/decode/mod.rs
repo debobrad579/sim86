@@ -2,6 +2,7 @@ pub mod alu;
 pub mod decoder;
 pub mod io;
 pub mod jumps;
+pub mod load;
 pub mod memory;
 pub mod misc;
 pub mod mov;
