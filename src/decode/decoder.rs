@@ -105,6 +105,10 @@ impl From<&[u8]> for Instruction {
             0xFB => processor::set_interrupt(),
             0xF4 => processor::halt(),
             0x9B => processor::wait(),
+            0xCD => processor::interrupt(bytes),
+            0xCC => processor::interrupt_type3(),
+            0xCE => processor::interrupt_on_overflow(),
+            0xCF => processor::interrupt_return(),
             0xA4..=0xA7 | 0xAA..=0xAF => string::string_instruction(bytes, rep),
             byte if byte & 0b11000100 == 0 => {
                 alu::rm_with_reg_to_either(bytes, segment_override, None)

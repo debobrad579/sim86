@@ -62,3 +62,31 @@ pub fn wait() -> DecodeInstruction {
         size: 1,
     }
 }
+
+pub fn interrupt(bytes: &[u8]) -> DecodeInstruction {
+    DecodeInstruction {
+        data: InstructionData::INT(bytes[1]),
+        size: 2,
+    }
+}
+
+pub fn interrupt_type3() -> DecodeInstruction {
+    DecodeInstruction {
+        data: InstructionData::INT3,
+        size: 1,
+    }
+}
+
+pub fn interrupt_on_overflow() -> DecodeInstruction {
+    DecodeInstruction {
+        data: InstructionData::INTO,
+        size: 1,
+    }
+}
+
+pub fn interrupt_return() -> DecodeInstruction {
+    DecodeInstruction {
+        data: InstructionData::IRET,
+        size: 1,
+    }
+}

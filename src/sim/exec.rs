@@ -244,6 +244,10 @@ impl Sim86 {
             InstructionData::STI => self.set_interrupt_flag(true),
             InstructionData::HLT => unreachable!(),
             InstructionData::WAIT => {}
+            InstructionData::INT(_) => todo!(),
+            InstructionData::INT3 => todo!(),
+            InstructionData::INTO => todo!(),
+            InstructionData::IRET => todo!(),
             InstructionData::String { .. } => todo!(),
         }
     }

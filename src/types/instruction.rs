@@ -100,6 +100,10 @@ pub enum InstructionData {
     STI,
     HLT,
     WAIT,
+    INT(u8),
+    INT3,
+    INTO,
+    IRET,
     String {
         op_code: StringOpCode,
         rep: Option<bool>,
@@ -198,6 +202,10 @@ impl Display for Instruction {
                 InstructionData::STI => "STI".into(),
                 InstructionData::HLT => "HLT".into(),
                 InstructionData::WAIT => "WAIT".into(),
+                InstructionData::INT(data) => format!("INT {}", data),
+                InstructionData::INT3 => "INT3".into(),
+                InstructionData::INTO => "INTO".into(),
+                InstructionData::IRET => "IRET".into(),
                 InstructionData::String {
                     op_code,
                     rep,

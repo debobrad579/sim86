@@ -4,7 +4,7 @@ An 8086 simulator written in Rust.
 
 ## Binaries
 
-- **`decode`**: disassembles a compiled 8086 binary
+- **`disasseble`**: disassembles a compiled 8086 binary
 - **`sim`**: executes an 8086 program in the simulator
 
 ## Getting Started
@@ -25,7 +25,7 @@ cargo build --release
 Disassemble a binary:
 
 ```sh
-cargo run --release --bin decode -- <path/to/binary>
+cargo run --release --bin disasseble -- <path/to/binary>
 ```
 
 Run a program in the simulator:
