@@ -1,16 +1,22 @@
 use crate::{
-    decode::memory::{ModRMType, decode_modrm},
+    decode::{
+        DecodeInstruction,
+        memory::{ModRMType, decode_modrm},
+    },
     types::{
-        instruction::{Instruction, InstructionData},
+        instruction::InstructionData,
         operand::{Operand, Register, SegmentRegister},
         width::Width,
     },
 };
 
-pub fn rm_with_register(bytes: &[u8], segment_override: Option<SegmentRegister>) -> Instruction {
+pub fn rm_with_register(
+    bytes: &[u8],
+    segment_override: Option<SegmentRegister>,
+) -> DecodeInstruction {
     let mod_rm = decode_modrm(bytes, ModRMType::Register, segment_override);
 
-    Instruction {
+    DecodeInstruction {
         data: InstructionData::XCHG {
             width: mod_rm.width,
             destination: mod_rm.reg,
@@ -20,10 +26,10 @@ pub fn rm_with_register(bytes: &[u8], segment_override: Option<SegmentRegister>)
     }
 }
 
-pub fn register_with_accumulator(bytes: &[u8]) -> Instruction {
+pub fn register_with_accumulator(bytes: &[u8]) -> DecodeInstruction {
     let width = Width::Word;
 
-    Instruction {
+    DecodeInstruction {
         data: InstructionData::XCHG {
             width,
             destination: Operand::Register(Register { width, value: 0 }),

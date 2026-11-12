@@ -1,13 +1,16 @@
 use crate::{
-    decode::memory::{ModRMType, decode_modrm},
+    decode::{
+        DecodeInstruction,
+        memory::{ModRMType, decode_modrm},
+    },
     types::{
-        instruction::{Instruction, InstructionData},
+        instruction::InstructionData,
         operand::{Operand, Register},
         width::Width,
     },
 };
 
-pub fn effective_address(bytes: &[u8]) -> Instruction {
+pub fn effective_address(bytes: &[u8]) -> DecodeInstruction {
     let mod_rm = decode_modrm(bytes, ModRMType::Register, None);
 
     let eac = match mod_rm.rm {
@@ -15,7 +18,7 @@ pub fn effective_address(bytes: &[u8]) -> Instruction {
         _ => unreachable!("second LEA operand must be effective address calculation"),
     };
 
-    Instruction {
+    DecodeInstruction {
         data: InstructionData::LEA {
             operand: mod_rm.reg,
             eac,
@@ -24,7 +27,7 @@ pub fn effective_address(bytes: &[u8]) -> Instruction {
     }
 }
 
-pub fn pointer_to_ds(bytes: &[u8]) -> Instruction {
+pub fn pointer_to_ds(bytes: &[u8]) -> DecodeInstruction {
     let mod_rm = decode_modrm(bytes, ModRMType::Register, None);
 
     let eac = match mod_rm.rm {
@@ -32,7 +35,7 @@ pub fn pointer_to_ds(bytes: &[u8]) -> Instruction {
         _ => unreachable!("second LDS operand must be effective address calculation"),
     };
 
-    Instruction {
+    DecodeInstruction {
         data: InstructionData::LDS {
             operand: mod_rm.reg,
             eac,
@@ -41,7 +44,7 @@ pub fn pointer_to_ds(bytes: &[u8]) -> Instruction {
     }
 }
 
-pub fn pointer_to_es(bytes: &[u8]) -> Instruction {
+pub fn pointer_to_es(bytes: &[u8]) -> DecodeInstruction {
     let mod_rm = decode_modrm(bytes, ModRMType::Register, None);
 
     let eac = match mod_rm.rm {
@@ -49,7 +52,7 @@ pub fn pointer_to_es(bytes: &[u8]) -> Instruction {
         _ => unreachable!("second LES operand must be effective address calculation"),
     };
 
-    Instruction {
+    DecodeInstruction {
         data: InstructionData::LES {
             operand: Operand::Register(Register {
                 width: Width::Word,
@@ -61,15 +64,15 @@ pub fn pointer_to_es(bytes: &[u8]) -> Instruction {
     }
 }
 
-pub fn ah_with_flags() -> Instruction {
-    Instruction {
+pub fn ah_with_flags() -> DecodeInstruction {
+    DecodeInstruction {
         data: InstructionData::LAHF,
         size: 1,
     }
 }
 
-pub fn ah_into_flags() -> Instruction {
-    Instruction {
+pub fn ah_into_flags() -> DecodeInstruction {
+    DecodeInstruction {
         data: InstructionData::SAHF,
         size: 1,
     }

@@ -1,13 +1,19 @@
 use crate::{
-    decode::memory::{ModRMType, decode_modrm},
+    decode::{
+        DecodeInstruction,
+        memory::{ModRMType, decode_modrm},
+    },
     types::{
-        instruction::{Instruction, InstructionData, ShiftRotateOpCode},
+        instruction::{InstructionData, ShiftRotateOpCode},
         operand::{Immediate, Operand, Register, SegmentRegister},
         width::Width,
     },
 };
 
-pub fn shift_rotate_rm(bytes: &[u8], segment_override: Option<SegmentRegister>) -> Instruction {
+pub fn shift_rotate_rm(
+    bytes: &[u8],
+    segment_override: Option<SegmentRegister>,
+) -> DecodeInstruction {
     let v = (bytes[0] & 0b00000010) >> 1;
     let literal = (bytes[1] & 0b00111000) >> 3;
 
@@ -23,7 +29,7 @@ pub fn shift_rotate_rm(bytes: &[u8], segment_override: Option<SegmentRegister>) 
         })
     };
 
-    Instruction {
+    DecodeInstruction {
         data: InstructionData::ShiftRotate {
             op_code,
             width: mod_rm.width,

@@ -1,10 +1,10 @@
 use crate::{
     decode::{
-        Direction,
+        DecodeInstruction, Direction,
         memory::{ModRMType, decode_modrm},
     },
     types::{
-        instruction::{AluBinaryOpCode, AluUnaryOpCode, Instruction, InstructionData},
+        instruction::{AluBinaryOpCode, AluUnaryOpCode, InstructionData},
         operand::{Immediate, Operand, Register, SegmentRegister},
         width::Width,
     },
@@ -42,7 +42,7 @@ pub fn rm_with_reg_to_either(
     bytes: &[u8],
     segment_override: Option<SegmentRegister>,
     op_code_override: Option<AluBinaryOpCode>,
-) -> Instruction {
+) -> DecodeInstruction {
     let direction = Direction::from((bytes[0] & 0b00000010) >> 1);
     let literal = (bytes[0] & 0b00111000) >> 3;
     let op_code = if let Some(op_code_override) = op_code_override {
@@ -54,7 +54,7 @@ pub fn rm_with_reg_to_either(
     let mod_rm = decode_modrm(bytes, ModRMType::Register, segment_override);
 
     match direction {
-        Direction::RegToRM => Instruction {
+        Direction::RegToRM => DecodeInstruction {
             data: InstructionData::AluBinary {
                 op_code,
                 width: mod_rm.width,
@@ -63,7 +63,7 @@ pub fn rm_with_reg_to_either(
             },
             size: mod_rm.size,
         },
-        Direction::RMToReg => Instruction {
+        Direction::RMToReg => DecodeInstruction {
             data: InstructionData::AluBinary {
                 op_code,
                 width: mod_rm.width,
@@ -79,7 +79,7 @@ pub fn immediate_to_rm(
     bytes: &[u8],
     segment_override: Option<SegmentRegister>,
     op_code_override: Option<AluBinaryOpCode>,
-) -> Instruction {
+) -> DecodeInstruction {
     let sign_extend = bytes[0] & 0b00000010 != 0;
     let literal = (bytes[1] & 0b00111000) >> 3;
 
@@ -91,7 +91,7 @@ pub fn immediate_to_rm(
 
     let mod_rm = decode_modrm(bytes, ModRMType::Immediate(sign_extend), segment_override);
 
-    Instruction {
+    DecodeInstruction {
         data: InstructionData::AluBinary {
             op_code,
             width: mod_rm.width,
@@ -105,7 +105,7 @@ pub fn immediate_to_rm(
 pub fn immediate_to_accumulator(
     bytes: &[u8],
     op_code_override: Option<AluBinaryOpCode>,
-) -> Instruction {
+) -> DecodeInstruction {
     let literal = (bytes[0] & 0b00111000) >> 3;
 
     let op_code = if let Some(op_code_override) = op_code_override {
@@ -121,7 +121,7 @@ pub fn immediate_to_accumulator(
         Width::Word => (u16::from_le_bytes([bytes[1], bytes[2]]), 3),
     };
 
-    Instruction {
+    DecodeInstruction {
         data: InstructionData::AluBinary {
             op_code,
             width,
@@ -132,13 +132,13 @@ pub fn immediate_to_accumulator(
     }
 }
 
-pub fn unary_rm(bytes: &[u8], segment_override: Option<SegmentRegister>) -> Instruction {
+pub fn unary_rm(bytes: &[u8], segment_override: Option<SegmentRegister>) -> DecodeInstruction {
     let literal = (bytes[1] & 0b00111000) >> 3;
 
     let op_code = get_alu_unary_op_code(literal);
     let mod_rm = decode_modrm(bytes, ModRMType::Register, segment_override);
 
-    Instruction {
+    DecodeInstruction {
         data: InstructionData::AluUnary {
             op_code,
             width: mod_rm.width,
@@ -148,11 +148,11 @@ pub fn unary_rm(bytes: &[u8], segment_override: Option<SegmentRegister>) -> Inst
     }
 }
 
-pub fn unary_reg(bytes: &[u8]) -> Instruction {
+pub fn unary_reg(bytes: &[u8]) -> DecodeInstruction {
     let literal = (bytes[0] & 0b00111000) >> 3;
     let reg = bytes[0] & 0b00000111;
 
-    Instruction {
+    DecodeInstruction {
         data: InstructionData::AluUnary {
             op_code: get_alu_unary_op_code(literal),
             width: Width::Word,

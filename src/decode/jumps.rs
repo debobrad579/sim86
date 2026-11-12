@@ -1,7 +1,10 @@
 use crate::{
-    decode::memory::{ModRMType, decode_modrm},
+    decode::{
+        DecodeInstruction,
+        memory::{ModRMType, decode_modrm},
+    },
     types::{
-        instruction::{Instruction, InstructionData},
+        instruction::InstructionData,
         jump::{ConditionalJumpOpCode, Jump},
         operand::{Operand, SegmentRegister},
     },
@@ -33,8 +36,8 @@ fn get_conditional_jump_op_code(literal: u8) -> ConditionalJumpOpCode {
     }
 }
 
-pub fn conditional_jump(bytes: &[u8]) -> Instruction {
-    Instruction {
+pub fn conditional_jump(bytes: &[u8]) -> DecodeInstruction {
+    DecodeInstruction {
         data: InstructionData::ConditionalJump {
             op_code: get_conditional_jump_op_code(bytes[0]),
             target: bytes[1] as i8,
@@ -43,8 +46,8 @@ pub fn conditional_jump(bytes: &[u8]) -> Instruction {
     }
 }
 
-pub fn direct_within_segment(bytes: &[u8]) -> Instruction {
-    Instruction {
+pub fn direct_within_segment(bytes: &[u8]) -> DecodeInstruction {
+    DecodeInstruction {
         data: InstructionData::JMP(Jump::DirectWithinSegment(u16::from_le_bytes([
             bytes[1], bytes[2],
         ]) as i16)),
@@ -52,8 +55,8 @@ pub fn direct_within_segment(bytes: &[u8]) -> Instruction {
     }
 }
 
-pub fn direct_within_segment_short(bytes: &[u8]) -> Instruction {
-    Instruction {
+pub fn direct_within_segment_short(bytes: &[u8]) -> DecodeInstruction {
+    DecodeInstruction {
         data: InstructionData::JMP(Jump::DirectWithinSegmentShort(bytes[1] as i8)),
         size: 2,
     }
@@ -62,17 +65,17 @@ pub fn direct_within_segment_short(bytes: &[u8]) -> Instruction {
 pub fn indirect_within_segment(
     bytes: &[u8],
     segment_override: Option<SegmentRegister>,
-) -> Instruction {
+) -> DecodeInstruction {
     let mod_rm = decode_modrm(bytes, ModRMType::Register, segment_override);
 
-    Instruction {
+    DecodeInstruction {
         data: InstructionData::JMP(Jump::IndirectWithinSegment(mod_rm.rm)),
         size: mod_rm.size,
     }
 }
 
-pub fn direct_intersegment(bytes: &[u8]) -> Instruction {
-    Instruction {
+pub fn direct_intersegment(bytes: &[u8]) -> DecodeInstruction {
+    DecodeInstruction {
         data: InstructionData::JMP(Jump::DirectIntersegment {
             ip: u16::from_le_bytes([bytes[1], bytes[2]]),
             cs: u16::from_le_bytes([bytes[3], bytes[4]]),
@@ -84,11 +87,11 @@ pub fn direct_intersegment(bytes: &[u8]) -> Instruction {
 pub fn indirect_intersegment(
     bytes: &[u8],
     segment_override: Option<SegmentRegister>,
-) -> Instruction {
+) -> DecodeInstruction {
     let mod_rm = decode_modrm(bytes, ModRMType::Register, segment_override);
 
     if let Operand::Memory(memory) = mod_rm.rm {
-        Instruction {
+        DecodeInstruction {
             data: InstructionData::JMP(Jump::IndirectIntersegment(memory)),
             size: mod_rm.size,
         }

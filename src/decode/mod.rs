@@ -1,3 +1,5 @@
+use crate::types::instruction::InstructionData;
+
 pub mod alu;
 pub mod decoder;
 pub mod io;
@@ -10,6 +12,11 @@ pub mod processor;
 pub mod shift_rotate;
 pub mod stack;
 pub mod xchg;
+
+pub(super) struct DecodeInstruction {
+    data: InstructionData,
+    size: u16,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum Direction {

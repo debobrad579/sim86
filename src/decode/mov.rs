@@ -1,10 +1,10 @@
 use crate::{
     decode::{
-        Direction,
+        DecodeInstruction, Direction,
         memory::{ModRMType, decode_modrm},
     },
     types::{
-        instruction::{Instruction, InstructionData},
+        instruction::InstructionData,
         operand::{
             EffectiveAddressCalculation, Immediate, Memory, Operand, Register, SegmentRegister,
         },
@@ -12,13 +12,16 @@ use crate::{
     },
 };
 
-pub fn reg_to_from_rm(bytes: &[u8], segment_override: Option<SegmentRegister>) -> Instruction {
+pub fn reg_to_from_rm(
+    bytes: &[u8],
+    segment_override: Option<SegmentRegister>,
+) -> DecodeInstruction {
     let direction = Direction::from((bytes[0] & 0b00000010) >> 1);
 
     let mod_rm = decode_modrm(bytes, ModRMType::Register, segment_override);
 
     match direction {
-        Direction::RegToRM => Instruction {
+        Direction::RegToRM => DecodeInstruction {
             data: InstructionData::MOV {
                 width: mod_rm.width,
                 destination: mod_rm.rm,
@@ -26,7 +29,7 @@ pub fn reg_to_from_rm(bytes: &[u8], segment_override: Option<SegmentRegister>) -
             },
             size: mod_rm.size,
         },
-        Direction::RMToReg => Instruction {
+        Direction::RMToReg => DecodeInstruction {
             data: InstructionData::MOV {
                 width: mod_rm.width,
                 destination: mod_rm.reg,
@@ -37,10 +40,13 @@ pub fn reg_to_from_rm(bytes: &[u8], segment_override: Option<SegmentRegister>) -
     }
 }
 
-pub fn immediate_to_rm(bytes: &[u8], segment_override: Option<SegmentRegister>) -> Instruction {
+pub fn immediate_to_rm(
+    bytes: &[u8],
+    segment_override: Option<SegmentRegister>,
+) -> DecodeInstruction {
     let mod_rm = decode_modrm(bytes, ModRMType::Immediate(false), segment_override);
 
-    Instruction {
+    DecodeInstruction {
         data: InstructionData::MOV {
             width: mod_rm.width,
             destination: mod_rm.rm,
@@ -50,11 +56,11 @@ pub fn immediate_to_rm(bytes: &[u8], segment_override: Option<SegmentRegister>) 
     }
 }
 
-pub fn immediate_to_register(bytes: &[u8]) -> Instruction {
+pub fn immediate_to_register(bytes: &[u8]) -> DecodeInstruction {
     let width = Width::from((bytes[0] & 0b00001000) >> 3);
     let reg = bytes[0] & 0b00000111;
 
-    Instruction {
+    DecodeInstruction {
         data: InstructionData::MOV {
             width,
             destination: Operand::Register(Register { width, value: reg }),
@@ -71,7 +77,7 @@ pub fn immediate_to_register(bytes: &[u8]) -> Instruction {
 pub fn memory_to_from_accumulator(
     bytes: &[u8],
     segment_override: Option<SegmentRegister>,
-) -> Instruction {
+) -> DecodeInstruction {
     let direction = Direction::from((bytes[0] & 0b00000010) >> 1);
     let width = Width::from(bytes[0] & 0b00000001);
     let addr = u16::from_le_bytes([bytes[1], bytes[2]]);
@@ -83,7 +89,7 @@ pub fn memory_to_from_accumulator(
     let register = Operand::Register(Register { width, value: 0 });
 
     match direction {
-        Direction::RegToRM => Instruction {
+        Direction::RegToRM => DecodeInstruction {
             data: InstructionData::MOV {
                 width,
                 destination: register,
@@ -91,7 +97,7 @@ pub fn memory_to_from_accumulator(
             },
             size: 3,
         },
-        Direction::RMToReg => Instruction {
+        Direction::RMToReg => DecodeInstruction {
             data: InstructionData::MOV {
                 width,
                 destination: memory,
@@ -102,13 +108,13 @@ pub fn memory_to_from_accumulator(
     }
 }
 
-pub fn sr_to_from_rm(bytes: &[u8], segment_override: Option<SegmentRegister>) -> Instruction {
+pub fn sr_to_from_rm(bytes: &[u8], segment_override: Option<SegmentRegister>) -> DecodeInstruction {
     let direction = Direction::from((bytes[0] & 0b00000010) >> 1);
 
     let mod_rm = decode_modrm(bytes, ModRMType::SegmentRegister, segment_override);
 
     match direction {
-        Direction::RegToRM => Instruction {
+        Direction::RegToRM => DecodeInstruction {
             data: InstructionData::MOV {
                 width: mod_rm.width,
                 destination: mod_rm.rm,
@@ -116,7 +122,7 @@ pub fn sr_to_from_rm(bytes: &[u8], segment_override: Option<SegmentRegister>) ->
             },
             size: mod_rm.size,
         },
-        Direction::RMToReg => Instruction {
+        Direction::RMToReg => DecodeInstruction {
             data: InstructionData::MOV {
                 width: mod_rm.width,
                 destination: mod_rm.reg,

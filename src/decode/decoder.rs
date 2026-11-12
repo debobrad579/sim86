@@ -1,5 +1,7 @@
 use crate::{
-    decode::{alu, io, jumps, load, misc, mov, processor, shift_rotate, stack, xchg},
+    decode::{
+        DecodeInstruction, alu, io, jumps, load, misc, mov, processor, shift_rotate, stack, xchg,
+    },
     types::{
         instruction::{AluBinaryOpCode, Instruction},
         operand::SegmentRegister,
@@ -10,9 +12,12 @@ impl From<&[u8]> for Instruction {
     fn from(bytes: &[u8]) -> Self {
         let mut offset = 0;
         let mut segment_override: Option<SegmentRegister> = None;
+        let mut lock = false;
 
         loop {
-            if bytes[offset] >> 5 == 0b001 && bytes[offset] & 0b00000111 == 0b110 {
+            if bytes[offset] == 0b11110000 {
+                lock = true;
+            } else if bytes[offset] >> 5 == 0b001 && bytes[offset] & 0b00000111 == 0b110 {
                 segment_override = Some(SegmentRegister::from((bytes[offset] & 0b00011000) >> 3));
             } else {
                 break;
@@ -101,6 +106,7 @@ impl From<&[u8]> for Instruction {
 
         Self {
             data: instruction.data,
+            lock,
             size: offset as u16 + instruction.size,
         }
     }

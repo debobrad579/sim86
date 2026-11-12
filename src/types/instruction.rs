@@ -8,6 +8,7 @@ use crate::types::{
 
 pub struct Instruction {
     pub data: InstructionData,
+    pub lock: bool,
     pub size: u16,
 }
 
@@ -96,85 +97,90 @@ pub enum InstructionData {
 
 impl Display for Instruction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match &self.data {
-            InstructionData::MOV {
-                width,
-                destination,
-                source,
-            } => write!(f, "MOV {} {},{}", width, destination, source),
-            InstructionData::XCHG {
-                width,
-                destination,
-                source,
-            } => write!(f, "XCHG {} {},{}", width, destination, source),
-            InstructionData::PUSH { operand } => write!(f, "PUSH {}", operand),
-            InstructionData::POP { operand } => write!(f, "POP {}", operand),
-            InstructionData::IN { operand, port, .. } => write!(f, "IN {},{}", operand, port),
-            InstructionData::OUT { operand, port, .. } => write!(f, "OUT {},{}", port, operand),
-            InstructionData::CALL(jump) => write!(f, "CALL {}", jump),
-            InstructionData::XLAT { segment_override } => match segment_override {
-                Some(segment_override) => write!(f, "{} XLAT", segment_override),
-                None => write!(f, "XLAT"),
-            },
-            InstructionData::LEA { operand, eac } => write!(f, "LEA {},[{}]", operand, eac),
-            InstructionData::LDS { operand, eac } => write!(f, "LDS {},[{}]", operand, eac),
-            InstructionData::LES { operand, eac } => write!(f, "LES {},[{}]", operand, eac),
-            InstructionData::LAHF => write!(f, "LAHF"),
-            InstructionData::SAHF => write!(f, "SAHF"),
-            InstructionData::PUSHF => write!(f, "PUSHF"),
-            InstructionData::POPF => write!(f, "POPF"),
-            InstructionData::RET(immediate) => {
-                if *immediate == 0 {
-                    write!(f, "RET")
-                } else {
-                    write!(f, "RET {}", immediate)
+        write!(
+            f,
+            "{}{}",
+            if self.lock { "LOCK " } else { "" },
+            match &self.data {
+                InstructionData::MOV {
+                    width,
+                    destination,
+                    source,
+                } => format!("MOV {} {},{}", width, destination, source),
+                InstructionData::XCHG {
+                    width,
+                    destination,
+                    source,
+                } => format!("XCHG {} {},{}", width, destination, source),
+                InstructionData::PUSH { operand } => format!("PUSH {}", operand),
+                InstructionData::POP { operand } => format!("POP {}", operand),
+                InstructionData::IN { operand, port, .. } => format!("IN {},{}", operand, port),
+                InstructionData::OUT { operand, port, .. } => format!("OUT {},{}", port, operand),
+                InstructionData::CALL(jump) => format!("CALL {}", jump),
+                InstructionData::XLAT { segment_override } => match segment_override {
+                    Some(segment_override) => format!("{} XLAT", segment_override),
+                    None => "XLAT".into(),
+                },
+                InstructionData::LEA { operand, eac } => format!("LEA {},[{}]", operand, eac),
+                InstructionData::LDS { operand, eac } => format!("LDS {},[{}]", operand, eac),
+                InstructionData::LES { operand, eac } => format!("LES {},[{}]", operand, eac),
+                InstructionData::LAHF => "LAHF".into(),
+                InstructionData::SAHF => "SAHF".into(),
+                InstructionData::PUSHF => "PUSHF".into(),
+                InstructionData::POPF => "POPF".into(),
+                InstructionData::RET(immediate) => {
+                    if *immediate == 0 {
+                        "RET".into()
+                    } else {
+                        format!("RET {}", immediate)
+                    }
                 }
-            }
-            InstructionData::RETF(immediate) => {
-                if *immediate == 0 {
-                    write!(f, "RETF")
-                } else {
-                    write!(f, "RETF {}", immediate)
+                InstructionData::RETF(immediate) => {
+                    if *immediate == 0 {
+                        "RETF".into()
+                    } else {
+                        format!("RETF {}", immediate)
+                    }
                 }
+                InstructionData::AluBinary {
+                    op_code,
+                    width,
+                    destination,
+                    source,
+                } => {
+                    format!("{} {} {},{}", op_code, width, destination, source)
+                }
+                InstructionData::AluUnary {
+                    op_code,
+                    width,
+                    operand,
+                } => {
+                    format!("{} {} {}", op_code, width, operand)
+                }
+                InstructionData::ShiftRotate {
+                    op_code,
+                    width,
+                    operand,
+                    amount,
+                } => {
+                    format!("{} {} {},{}", op_code, width, operand, amount)
+                }
+                InstructionData::JMP(jump) => format!("JMP {}", jump),
+                InstructionData::ConditionalJump { op_code, target } => {
+                    format!("{} ${:+}", op_code, target + 2)
+                }
+                InstructionData::CBW => "CBW".into(),
+                InstructionData::CLC => "CLC".into(),
+                InstructionData::CMC => "CMC".into(),
+                InstructionData::STC => "STC".into(),
+                InstructionData::CLD => "CLD".into(),
+                InstructionData::STD => "STD".into(),
+                InstructionData::CLI => "CLI".into(),
+                InstructionData::STI => "STI".into(),
+                InstructionData::HLT => "HLT".into(),
+                InstructionData::WAIT => "WAIT".into(),
             }
-            InstructionData::AluBinary {
-                op_code,
-                width,
-                destination,
-                source,
-            } => {
-                write!(f, "{} {} {},{}", op_code, width, destination, source)
-            }
-            InstructionData::AluUnary {
-                op_code,
-                width,
-                operand,
-            } => {
-                write!(f, "{} {} {}", op_code, width, operand)
-            }
-            InstructionData::ShiftRotate {
-                op_code,
-                width,
-                operand,
-                amount,
-            } => {
-                write!(f, "{} {} {},{}", op_code, width, operand, amount)
-            }
-            InstructionData::JMP(jump) => write!(f, "JMP {}", jump),
-            InstructionData::ConditionalJump { op_code, target } => {
-                write!(f, "{} ${:+}", op_code, target + 2)
-            }
-            InstructionData::CBW => write!(f, "CBW"),
-            InstructionData::CLC => write!(f, "CLC"),
-            InstructionData::CMC => write!(f, "CMC"),
-            InstructionData::STC => write!(f, "STC"),
-            InstructionData::CLD => write!(f, "CLD"),
-            InstructionData::STD => write!(f, "STD"),
-            InstructionData::CLI => write!(f, "CLI"),
-            InstructionData::STI => write!(f, "STI"),
-            InstructionData::HLT => write!(f, "HLT"),
-            InstructionData::WAIT => write!(f, "WAIT"),
-        }
+        )
     }
 }
 
