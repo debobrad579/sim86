@@ -1,7 +1,5 @@
 use crate::{
-    decode::{
-        DecodeInstruction, alu, io, jumps, load, misc, mov, processor, shift_rotate, stack, xchg,
-    },
+    decode::{alu, io, jumps, load, misc, mov, processor, shift_rotate, stack, xchg},
     types::{
         instruction::{AluBinaryOpCode, Instruction},
         operand::SegmentRegister,
@@ -87,7 +85,14 @@ impl From<&[u8]> for Instruction {
             0xEC | 0xED => io::in_variable(bytes),
             0xE6 | 0xE7 => io::out_fixed(bytes),
             0xEE | 0xEF => io::out_variable(bytes),
+            0x37 => misc::aaa(),
+            0x27 => misc::daa(),
+            0x3F => misc::aas(),
+            0x2F => misc::das(),
+            0xD4 if bytes[1] == 0x0A => misc::aam(),
+            0xD5 if bytes[1] == 0x0A => misc::aad(),
             0x98 => misc::cbw(),
+            0x99 => misc::cwd(),
             0xF8 => processor::clear_carry(),
             0xF5 => processor::complement_carry(),
             0xF9 => processor::set_carry(),

@@ -13,7 +13,7 @@ pub mod shift_rotate;
 pub mod stack;
 pub mod xchg;
 
-pub(super) struct DecodeInstruction {
+pub struct DecodeInstruction {
     data: InstructionData,
     size: u16,
 }

@@ -1,4 +1,11 @@
+aaa
+daa
+aas
+das
+aam
+aad
 cbw
+cwd
 
 xlat
 es xlat

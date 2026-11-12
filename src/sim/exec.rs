@@ -158,9 +158,6 @@ impl Sim86 {
                     stdout().flush().unwrap();
                 }
             }
-            InstructionData::CBW => {
-                self.registers[0] = (self.registers[0] & 0x00FF) as u8 as i8 as i16 as u16;
-            }
             InstructionData::XLAT { segment_override } => {
                 let segment = self.segment_registers[match segment_override {
                     Some(segment_override) => segment_override.value(),
@@ -228,6 +225,16 @@ impl Sim86 {
                 );
             }
             InstructionData::SAHF => self.flags = (self.flags & 0xFF00) | (self.registers[0] >> 8),
+            InstructionData::AAA => todo!(),
+            InstructionData::DAA => todo!(),
+            InstructionData::AAS => todo!(),
+            InstructionData::DAS => todo!(),
+            InstructionData::AAM => todo!(),
+            InstructionData::AAD => todo!(),
+            InstructionData::CBW => {
+                self.registers[0] = (self.registers[0] & 0x00FF) as u8 as i8 as i16 as u16;
+            }
+            InstructionData::CWD => todo!(),
             InstructionData::CLC => self.set_carry_flag(false),
             InstructionData::CMC => self.set_carry_flag(!self.get_carry_flag()),
             InstructionData::STC => self.set_carry_flag(true),
