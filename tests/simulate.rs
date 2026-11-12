@@ -128,3 +128,9 @@ fn test() {
     assert_eq!(sim86.registers(), [10, 0, 0, 0, 0, 0, 0, 0]);
     assert_eq!(sim86.flags(), 0b0000_0000_0100_0100);
 }
+
+#[test]
+fn xchg() {
+    let sim86 = run_sim86("tests/sim/xchg.asm");
+    assert_eq!(sim86.registers(), [40, 20, 10, 30, 0, 0, 0, 0]);
+}

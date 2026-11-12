@@ -17,6 +17,11 @@ pub enum InstructionData {
         destination: Operand,
         source: Operand,
     },
+    XCHG {
+        width: Width,
+        destination: Operand,
+        source: Operand,
+    },
     PUSH {
         operand: Operand,
     },
@@ -73,9 +78,12 @@ impl Display for Instruction {
                 width,
                 destination,
                 source,
-            } => {
-                write!(f, "MOV {} {},{}", width, destination, source)
-            }
+            } => write!(f, "MOV {} {},{}", width, destination, source),
+            InstructionData::XCHG {
+                width,
+                destination,
+                source,
+            } => write!(f, "XCHG {} {},{}", width, destination, source),
             InstructionData::PUSH { operand } => write!(f, "PUSH {}", operand),
             InstructionData::POP { operand } => write!(f, "POP {}", operand),
             InstructionData::CALL(jump) => write!(f, "CALL {}", jump),

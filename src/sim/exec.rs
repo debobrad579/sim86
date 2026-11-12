@@ -21,6 +21,16 @@ impl Sim86 {
                 source,
                 width,
             } => self.set_value(destination, self.get_value(&source, &width), &width),
+            InstructionData::XCHG {
+                width,
+                destination,
+                source,
+            } => {
+                let source_value = self.get_value(&source, &width);
+                let destination_value = self.get_value(&destination, &width);
+                self.set_value(destination, source_value, &width);
+                self.set_value(source, destination_value, &width);
+            }
             InstructionData::PUSH { operand } => {
                 let value = self.get_value(&operand, &Width::Word);
                 self.registers[0b100] = self.registers[0b100].wrapping_sub(2);

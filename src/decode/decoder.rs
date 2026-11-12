@@ -1,5 +1,5 @@
 use crate::{
-    decode::{alu, io, jumps, misc, mov, shift_rotate, stack},
+    decode::{alu, io, jumps, misc, mov, shift_rotate, stack, xchg},
     types::{
         instruction::{AluBinaryOpCode, Instruction},
         operand::SegmentRegister,
@@ -29,6 +29,8 @@ impl From<&[u8]> for Instruction {
             0xC6 | 0xC7 => mov::immediate_to_rm(bytes, segment_override),
             0xB0..=0xBF => mov::immediate_to_register(bytes),
             0xA0..=0xA3 => mov::memory_to_from_accumulator(bytes, segment_override),
+            0x86 | 0x87 => xchg::rm_with_register(bytes, segment_override),
+            0x90..=0x97 => xchg::register_with_accumulator(bytes),
             0xFF if (bytes[1] >> 3) & 0b111 == 0b110 => stack::push_rm(bytes, segment_override),
             0x50..=0x57 => stack::push_reg(bytes),
             0x06 | 0x0E | 0x16 | 0x1E => stack::push_sr(bytes),

@@ -44,7 +44,7 @@ cargo run --release --bin sim -- tictactoe.asm
 
 | Category       | Instructions |
 |----------------|--------------|
-| Data transfer  | `mov` |
+| Data transfer  | `mov`, `xchg` |
 | Stack          | `push`, `pop`, `call`, `ret`, `retf` |
 | Arithmetic     | `add`, `adc`, `sub`, `sbb`, `cmp`, `inc`, `dec`, `neg` |
 | Logic          | `and`, `or`, `xor`, `not`, `test` |
