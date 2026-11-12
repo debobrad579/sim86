@@ -11,6 +11,7 @@ pub mod mov;
 pub mod processor;
 pub mod shift_rotate;
 pub mod stack;
+pub mod string;
 pub mod xchg;
 
 pub struct DecodeInstruction {

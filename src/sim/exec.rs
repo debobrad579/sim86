@@ -244,6 +244,7 @@ impl Sim86 {
             InstructionData::STI => self.set_interrupt_flag(true),
             InstructionData::HLT => unreachable!(),
             InstructionData::WAIT => {}
+            InstructionData::String { .. } => todo!(),
         }
     }
 }

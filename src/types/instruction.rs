@@ -100,6 +100,11 @@ pub enum InstructionData {
     STI,
     HLT,
     WAIT,
+    String {
+        op_code: StringOpCode,
+        rep: Option<bool>,
+        width: Width,
+    },
 }
 
 impl Display for Instruction {
@@ -193,6 +198,27 @@ impl Display for Instruction {
                 InstructionData::STI => "STI".into(),
                 InstructionData::HLT => "HLT".into(),
                 InstructionData::WAIT => "WAIT".into(),
+                InstructionData::String {
+                    op_code,
+                    rep,
+                    width,
+                } => format!(
+                    "{}{}{}",
+                    match rep {
+                        Some(z) =>
+                            if *z {
+                                "REPZ "
+                            } else {
+                                "REP "
+                            },
+                        None => "",
+                    },
+                    op_code,
+                    match width {
+                        Width::Byte => "B",
+                        Width::Word => "W",
+                    }
+                ),
             }
         )
     }
@@ -247,6 +273,21 @@ pub enum ShiftRotateOpCode {
 }
 
 impl Display for ShiftRotateOpCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum StringOpCode {
+    MOVS,
+    CMPS,
+    SCAS,
+    LODS,
+    STOS,
+}
+
+impl Display for StringOpCode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self)
     }
