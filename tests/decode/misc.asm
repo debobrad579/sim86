@@ -1,5 +1,4 @@
 cbw
-hlt
 
 xlat
 es xlat

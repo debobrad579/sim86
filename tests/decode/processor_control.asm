@@ -1,0 +1,9 @@
+clc
+cmc
+stc
+cld
+std
+cli
+sti
+hlt
+wait

@@ -83,7 +83,15 @@ pub enum InstructionData {
         amount: Operand,
     },
     CBW,
+    CLC,
+    CMC,
+    STC,
+    CLD,
+    STD,
+    CLI,
+    STI,
     HLT,
+    WAIT,
 }
 
 impl Display for Instruction {
@@ -157,7 +165,15 @@ impl Display for Instruction {
                 write!(f, "{} ${:+}", op_code, target + 2)
             }
             InstructionData::CBW => write!(f, "CBW"),
+            InstructionData::CLC => write!(f, "CLC"),
+            InstructionData::CMC => write!(f, "CMC"),
+            InstructionData::STC => write!(f, "STC"),
+            InstructionData::CLD => write!(f, "CLD"),
+            InstructionData::STD => write!(f, "STD"),
+            InstructionData::CLI => write!(f, "CLI"),
+            InstructionData::STI => write!(f, "STI"),
             InstructionData::HLT => write!(f, "HLT"),
+            InstructionData::WAIT => write!(f, "WAIT"),
         }
     }
 }

@@ -42,15 +42,15 @@ cargo run --release --bin sim -- tictactoe.asm
 
 ## Supported Instructions
 
-| Category       | Instructions |
-|----------------|--------------|
-| Data transfer  | `mov`, `xchg`, `xlat`, `lea`, `lds`, `les`, `lahf`, `sahf` |
-| Stack          | `push`, `pop`, `pushf`, `popf`, `call`, `ret`, `retf` |
-| Arithmetic     | `add`, `adc`, `sub`, `sbb`, `cmp`, `inc`, `dec`, `neg` |
-| Logic          | `and`, `or`, `xor`, `not`, `test` |
-| Control flow   | `jmp`, `loop`, `loopz`, `loopnz`, `jcxz`, and all conditional jumps |
-| I/O            | `in`, `out` (simulated ports: `00h` = stdin, `01h` = stdout) |
-| Misc           | `hlt`, `cbw` |
+| Category          | Instructions |
+|-------------------|--------------|
+| Data transfer     | `mov`, `xchg`, `xlat`, `lea`, `lds`, `les`, `lahf`, `sahf` |
+| Stack             | `push`, `pop`, `pushf`, `popf`, `call`, `ret`, `retf` |
+| Arithmetic        | `add`, `adc`, `sub`, `sbb`, `cmp`, `inc`, `dec`, `neg`, `cbw` |
+| Logic             | `and`, `or`, `xor`, `not`, `test` |
+| Control flow      | `jmp`, `loop`, `loopz`, `loopnz`, `jcxz`, and all conditional jumps |
+| I/O               | `in`, `out` (simulated ports: `00h` = stdin, `01h` = stdout) |
+| Processor control | `clc`, `cmc`, `stc`, `cld`, `std`, `cli`, `sti`, `hlt`, `wait` |
 
 ## Acknowledgements
 

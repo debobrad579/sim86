@@ -11,7 +11,7 @@ impl Sim86 {
         self.flags & 0b1 != 0
     }
 
-    fn set_carry_flag(&mut self, value: bool) {
+    pub fn set_carry_flag(&mut self, value: bool) {
         set_bit!(self.flags, 0, value)
     }
 
@@ -19,7 +19,7 @@ impl Sim86 {
         self.flags & 0b100 != 0
     }
 
-    fn set_parity_flag(&mut self, value: bool) {
+    pub fn set_parity_flag(&mut self, value: bool) {
         set_bit!(self.flags, 2, value)
     }
 
@@ -27,7 +27,7 @@ impl Sim86 {
         self.flags & 0b1_0000 != 0
     }
 
-    fn set_auxiliary_carry_flag(&mut self, value: bool) {
+    pub fn set_auxiliary_carry_flag(&mut self, value: bool) {
         set_bit!(self.flags, 4, value)
     }
 
@@ -35,7 +35,7 @@ impl Sim86 {
         self.flags & 0b100_0000 != 0
     }
 
-    fn set_zero_flag(&mut self, value: bool) {
+    pub fn set_zero_flag(&mut self, value: bool) {
         set_bit!(self.flags, 6, value)
     }
 
@@ -43,7 +43,7 @@ impl Sim86 {
         self.flags & 0b1000_0000 != 0
     }
 
-    fn set_sign_flag(&mut self, value: bool) {
+    pub fn set_sign_flag(&mut self, value: bool) {
         set_bit!(self.flags, 7, value)
     }
 
@@ -51,7 +51,7 @@ impl Sim86 {
         self.flags & 0b1_0000_0000 != 0
     }
 
-    fn _set_trap_flag(&mut self, value: bool) {
+    pub fn set_trap_flag(&mut self, value: bool) {
         set_bit!(self.flags, 8, value)
     }
 
@@ -59,7 +59,7 @@ impl Sim86 {
         self.flags & 0b10_0000_0000 != 0
     }
 
-    fn _set_interrupt_flag(&mut self, value: bool) {
+    pub fn set_interrupt_flag(&mut self, value: bool) {
         set_bit!(self.flags, 9, value)
     }
 
@@ -67,7 +67,7 @@ impl Sim86 {
         self.flags & 0b100_0000_0000 != 0
     }
 
-    fn _set_direction_flag(&mut self, value: bool) {
+    pub fn set_direction_flag(&mut self, value: bool) {
         set_bit!(self.flags, 10, value)
     }
 
@@ -75,7 +75,7 @@ impl Sim86 {
         self.flags & 0b1000_0000_0000 != 0
     }
 
-    fn set_overflow_flag(&mut self, value: bool) {
+    pub fn set_overflow_flag(&mut self, value: bool) {
         set_bit!(self.flags, 11, value)
     }
 

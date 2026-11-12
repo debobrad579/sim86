@@ -6,6 +6,7 @@ pub mod load;
 pub mod memory;
 pub mod misc;
 pub mod mov;
+pub mod processor;
 pub mod shift_rotate;
 pub mod stack;
 pub mod xchg;

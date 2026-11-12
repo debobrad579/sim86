@@ -16,10 +16,3 @@ pub fn cbw() -> Instruction {
         size: 1,
     }
 }
-
-pub fn halt() -> Instruction {
-    Instruction {
-        data: InstructionData::HLT,
-        size: 1,
-    }
-}
