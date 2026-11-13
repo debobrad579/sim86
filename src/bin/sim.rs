@@ -1,16 +1,10 @@
-use std::{env, fs, process::Command};
+use clap::Parser;
+use std::{fs, path::PathBuf, process::Command};
 
 use sim86::sim::Sim86;
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
-
-    if args.len() != 2 {
-        eprintln!("Usage: sim86_sim <file_path>");
-        std::process::exit(1);
-    }
-
-    let file_path = &args[1];
+    let args = Args::parse();
 
     let temp_dir = tempfile::tempdir().expect("Failed to create temporary directory");
 
@@ -19,7 +13,7 @@ fn main() {
     Command::new("nasm")
         .arg("-o")
         .arg(&compiled_path)
-        .arg(file_path)
+        .arg(args.path.into_os_string())
         .output()
         .expect("Failed to execute nasm");
 
@@ -29,5 +23,17 @@ fn main() {
 
     let mut sim86 = Sim86::default();
     sim86.load(&program);
-    sim86.run(false);
+    sim86.run(args.print, args.output);
+}
+
+#[derive(Parser)]
+#[clap()]
+struct Args {
+    path: PathBuf,
+
+    #[clap(short, long, default_value_t = false)]
+    print: bool,
+
+    #[clap(short, long)]
+    output: Option<PathBuf>,
 }

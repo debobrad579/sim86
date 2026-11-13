@@ -26,7 +26,7 @@ fn run_sim86(file: &str) -> Sim86 {
 
     let mut sim86 = Sim86::default();
     sim86.load(&program);
-    sim86.run(false);
+    sim86.run(false, None);
 
     sim86
 }

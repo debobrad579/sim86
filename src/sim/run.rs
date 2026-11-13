@@ -1,5 +1,5 @@
-use std::fs::File;
 use std::io::Write;
+use std::{fs::File, path::PathBuf};
 
 use crate::{
     sim::{Sim86, utils::get_memory_address},
@@ -7,7 +7,7 @@ use crate::{
 };
 
 impl Sim86 {
-    pub fn run(&mut self, print: bool) {
+    pub fn run(&mut self, print: bool, output: Option<PathBuf>) {
         loop {
             let instruction = Instruction::from(
                 &self.memory[get_memory_address(self.segment_registers[0b01], self.ip)..],
@@ -30,8 +30,10 @@ impl Sim86 {
             println!("{:?}", self);
         }
 
-        let mut file = File::create("memory.data").unwrap();
-        file.write_all(&self.memory).unwrap();
+        if let Some(output_path) = output {
+            let mut file = File::create(output_path.into_os_string()).unwrap();
+            file.write_all(&self.memory).unwrap();
+        }
     }
 
     pub(super) fn increment_ip(&mut self, inc: i16) {

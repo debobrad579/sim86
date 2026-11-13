@@ -1,18 +1,25 @@
-use std::env;
+use clap::Parser;
+use std::{
+    fs::File,
+    io::{BufWriter, Write},
+    path::PathBuf,
+};
 
 use sim86::types::instruction::Instruction;
 
 fn main() -> std::io::Result<()> {
-    let args: Vec<String> = env::args().collect();
+    let mut args = Args::parse();
 
-    if args.len() != 2 {
-        eprintln!("Usage: sim86_decode <file_path>");
-        std::process::exit(1);
-    }
+    let output_path = args.output.take().unwrap_or_else(|| {
+        let mut path = args.path.clone();
+        path.set_extension("asm");
+        path
+    });
 
-    let file_path = &args[1];
+    let data: Box<[u8]> = std::fs::read(args.path)?.into();
 
-    let data: Box<[u8]> = std::fs::read(file_path)?.into();
+    let file = File::create(output_path)?;
+    let mut writer = BufWriter::new(file);
 
     let len = data.len();
     let mut count = len;
@@ -21,10 +28,21 @@ fn main() -> std::io::Result<()> {
 
         let instruction = Instruction::from(&data[i..]);
 
-        println!("{}", instruction);
+        writer.write_all(&format!("{}\n", instruction).into_bytes())?;
 
         count -= instruction.size as usize;
     }
 
+    writer.flush()?;
+
     Ok(())
+}
+
+#[derive(Parser)]
+#[clap()]
+struct Args {
+    path: PathBuf,
+
+    #[clap(short, long)]
+    output: Option<PathBuf>,
 }

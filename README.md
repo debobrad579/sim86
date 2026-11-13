@@ -25,13 +25,13 @@ cargo build --release
 Disassemble a binary:
 
 ```sh
-cargo run --release --bin disasseble -- <path/to/binary>
+cargo run --release --bin disasseble -- <path/to/binary> [--output <path>]
 ```
 
 Run a program in the simulator:
 
 ```sh
-cargo run --release --bin sim -- <path/to/assembly>
+cargo run --release --bin sim -- <path/to/assembly> [--output <path>] [--print]
 ```
 
 ## Example: TicTacToe
